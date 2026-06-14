@@ -1,51 +1,42 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
 export default function AdminPage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [statusText, setStatusText] = useState('🟢 سیستم آماده جستجو است.');
+  const [msg, setMsg] = useState('سیستم آماده کار است.');
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) {
-      setStatusText('⚠️ لطفا نام بازی را بنویسید.');
-      return;
-    }
-
+  // اتصال دکمه سرچ مستقیم به RAWG به سبک کد اولمان
+  const startSearch = async () => {
+    if (!query.trim()) return;
     setLoading(true);
-    setSearchResults([]);
-    setStatusText('🔍 در حال ارتباط مستقیم با بانک اطلاعاتی RAWG...');
-
+    setMsg('در حال دریافت دیتای زنده از RAWG...');
+    
     try {
       const apiKey = '8ceb3ebba03c4ddca51106af23868263';
-      const response = await fetch(`https://api.rawg.io/api/games?key=${apiKey}&search=${encodeURIComponent(searchQuery.trim())}`);
-      
-      if (!response.ok) {
-        throw new Error(`خطای سایت مرجع: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const res = await fetch(`https://api.rawg.io/api/games?key=${apiKey}&search=${encodeURIComponent(query.trim())}`);
+      const data = await res.json();
       
       if (data && data.results) {
-        setSearchResults(data.results);
-        setStatusText(`✅ یافت شد! تعداد ${data.results.length} بازی لود شد.`);
+        setResults(data.results);
+        setMsg(`موفقیت‌آمیز: ${data.results.length} بازی پیدا شد.`);
       } else {
-        setStatusText('❌ دیتایی یافت نشد یا فرمت پاسخ تغییر کرده است.');
+        setMsg('پاسخی از سرور دریافت نشد.');
       }
-    } catch (error: any) {
-      setStatusText(`❌ خطا در اتصال: ${error.message || 'مشکل شبکه یا مسدود بودن دسترسی'}`);
-    } finally {
+    } catch (e: any) {
+      setMsg('خطا در اتصال مستقیم: ' + e.message);
+    } {
       setLoading(false);
     }
   };
 
-  const handleAddGame = async (game: any) => {
-    setStatusText(`⏳ در حال ارسال بازی "${game.name}" به دیتابیس اصلی سایت...`);
+  // ذخیره بازی در دیتابیس کلودفلر شما
+  const saveGame = async (game: any) => {
+    setMsg(`در حال ذخیره ${game.name}...`);
     try {
-      const response = await fetch('/api/games', {
+      const res = await fetch('/api/games', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -60,76 +51,64 @@ export default function AdminPage() {
           short_screenshots: game.short_screenshots || []
         })
       });
-
-      const result = await response.json();
-      if (response.ok) {
-        alert(`✅ بازی "${game.name}" با موفقیت ذخیره شد و به صفحه اصلی رفت!`);
-        setStatusText('✅ ذخیره‌سازی موفقیت‌آمیز بود.');
+      
+      if (res.ok) {
+        alert(`✅ بازی "${game.name}" با موفقیت به صفحه اصلی سایتت اضافه شد!`);
+        setMsg('ذخیره شد.');
       } else {
-        alert(`❌ خطا: ${result.error}`);
-        setStatusText(`❌ خطا در ذخیره: ${result.error}`);
+        const err = await res.json();
+        alert(`❌ خطا: ${err.error}`);
       }
     } catch (err) {
-      alert('❌ خطا در شبکه یا دیتابیس کلودفلر');
-      setStatusText('❌ خطا در برقراری ارتباط با سرور سایت خودتان.');
+      alert('خطا در شبکه');
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-4 md:p-8" dir="rtl">
-      <div className="max-w-2xl mx-auto bg-gray-900 rounded-2xl p-6 border border-gray-800 shadow-2xl">
+    <div style={{ backgroundColor: '#030712', color: '#fff', minHeight: '100vh', padding: '20px', fontFamily: 'sans-serif', direction: 'rtl' }}>
+      <div style={{ maxWidth: '600px', margin: '0 auto', backgroundColor: '#111827', padding: '20px', borderRadius: '15px', border: '1px solid #1f2937' }}>
         
-        <div className="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
-          <h1 className="text-lg font-bold text-blue-500">🛠️ منوی مدیریت و کنترل بازی‌ها</h1>
-          <Link href="/" className="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-xl text-xs border border-gray-700 transition">
-            بازگشت به سایت اصلی
-          </Link>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center' }}>
+          <h2 style={{ color: '#3b82f6', margin: 0 }}>🛠️ پنل مدیریت مخفی بازی‌ها</h2>
+          <a href="/" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '14px', border: '1px solid #374151', padding: '5px 10px', borderRadius: '8px' }}>مشاهده سایت اصلی</a>
         </div>
 
-        <div className="flex gap-2 mb-4">
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
           <input 
             type="text" 
-            placeholder="نام بازی را انگلیسی بنویسید (مثال: GTA V)" 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            className="flex-1 bg-gray-950 text-white px-4 py-3 rounded-xl border border-gray-800 focus:outline-none focus:border-blue-500 text-left text-sm"
-            dir="ltr"
+            placeholder="نام بازی به انگلیسی..." 
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            style={{ flex: 1, padding: '12px', borderRadius: '10px', border: '1px solid #374151', backgroundColor: '#030712', color: '#fff', direction: 'ltr' }}
           />
           <button 
-            onClick={handleSearch} 
-            disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 px-6 py-3 rounded-xl font-bold text-sm transition"
+            onClick={startSearch}
+            style={{ padding: '12px 20px', borderRadius: '10px', border: 'none', backgroundColor: '#2563eb', color: '#fff', cursor: 'pointer', fontWeight: 'bold' }}
           >
-            {loading ? 'صبر کنید...' : 'جستجوی هوشمند'}
+            {loading ? 'صبر کنید...' : 'جستجو'}
           </button>
         </div>
 
-        {/* جعبه گزارش زنده وضعیت */}
-        <div className="mb-6 p-3 rounded-xl bg-gray-950 border border-gray-800 text-xs text-gray-400 font-mono text-right">
-          {statusText}
+        <div style={{ padding: '10px', backgroundColor: '#030712', borderRadius: '8px', fontSize: '13px', color: '#9ca3af', marginBottom: '15px' }}>
+          وضعیت سیستم: {msg}
         </div>
 
-        {searchResults.length > 0 && (
-          <div className="space-y-2 max-h-96 overflow-y-auto bg-gray-950 p-2 rounded-xl border border-gray-800">
-            {searchResults.map((game) => (
-              <div key={game.id} className="flex items-center justify-between bg-gray-900 p-3 rounded-lg border border-gray-800">
-                <div className="flex items-center gap-3">
-                  {game.background_image && (
-                    <img src={game.background_image} alt="" className="w-10 h-10 object-cover rounded" />
-                  )}
-                  <span className="text-sm font-medium text-gray-200">{game.name}</span>
-                </div>
-                <button 
-                  onClick={() => handleAddGame(game)}
-                  className="bg-green-600 hover:bg-green-700 text-xs px-3 py-2 rounded-lg transition"
-                >
-                  ➕ اضافه کردن به سایت
-                </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {results.map((game) => (
+            <div key={game.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px', backgroundColor: '#1f2937', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {game.background_image && <img src={game.background_image} style={{ width: '40px', height: '40px', objectCover: 'cover', borderRadius: '5px' }} />}
+                <span style={{ fontSize: '14px' }}>{game.name}</span>
               </div>
-            ))}
-          </div>
-        )}
+              <button 
+                onClick={() => saveGame(game)}
+                style={{ backgroundColor: '#16a34a', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}
+              >
+                ➕ اضافه به سایت
+              </button>
+            </div>
+          ))}
+        </div>
 
       </div>
     </div>

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 
 interface Game {
-  id: number;
+  id: any;
   name: string;
   background_image: string;
   rating: number;
@@ -32,7 +32,7 @@ export default function Home() {
     try {
       const res = await fetch('/api/games');
       const data = await res.json();
-      setMyGames(data || []);
+      setMyGames(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('خطا در دریافت بازی‌ها از دیتابیس');
     }
@@ -49,25 +49,44 @@ export default function Home() {
     }
   };
 
-  // ۲. فرستادن بازی به دیتابیس برای ذخیره دائمی
+  // ۲. فرستادن بازی به دیتابیس برای ذخیره دائمی (اصلاح‌شده برای کلودفلر)
   const addGameToSite = async (game: Game) => {
     setLoading(true);
     try {
+      // استانداردسازی دیتای بازی برای هماهنگی کامل با دیتابیس KV کلودفلر
+      const optimizedGame = {
+        id: game.id.toString(),
+        name: game.name,
+        background_image: game.background_image || 'https://placehold.co/600x400?text=No+Image',
+        rating: game.rating || 0,
+        released: game.released || '---',
+        playtime: game.playtime || 0,
+        genres: game.genres ? game.genres.map(g => ({ name: g.name })) : [],
+        platforms: game.platforms ? game.platforms.map(p => ({
+          platform: { name: p.platform.name },
+          requirements_en: p.requirements_en ? {
+            minimum: p.requirements_en.minimum || '',
+            recommended: p.requirements_en.recommended || ''
+          } : null
+        })) : [],
+        short_screenshots: game.short_screenshots ? game.short_screenshots.map(s => ({ id: s.id, image: s.image })) : []
+      };
+
       const res = await fetch('/api/games', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(game)
+        body: JSON.stringify(optimizedGame)
       });
       
       const result = await res.json();
       
       if (res.ok) {
-        alert(`بازی "${game.name}" با موفقیت در دیتابیس ذخیره شد!`);
-        fetchGamesFromDatabase(); // بروزرسانی لیست اصلی
+        alert(`بازی "${game.name}" با موفقیت در دیتابیس ابری ذخیره شد!`);
+        await fetchGamesFromDatabase(); // بروزرسانی لیست اصلی
         setSearchResults([]);
         setSearchQuery('');
       } else {
-        alert(result.error || 'خطایی رخ داد');
+        alert(result.error || 'خطایی در سرور رخ داد');
       }
     } catch (err) {
       alert('اتصال به دیتابیس برقرار نشد.');
@@ -155,7 +174,7 @@ export default function Home() {
                   <div className="p-4">
                     <h3 className="font-bold text-sm truncate text-right text-gray-200">{game.name}</h3>
                     <div className="flex justify-between items-center mt-2" dir="ltr">
-                      <span className="text-xs text-gray-400">{game.released?.split('-')[0]}</span>
+                      <span className="text-xs text-gray-400">{game.released?.split('-')[0] || '---'}</span>
                       <span className="text-xs bg-gray-800 text-yellow-500 px-2 py-0.5 rounded-md font-bold">⭐ {game.rating}</span>
                     </div>
                   </div>

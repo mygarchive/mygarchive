@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// ⚠️ این خط فوق‌العاده حیاتی است تا کلودفلر دیتابیس را به این روت متصل کند
+export const runtime = 'edge';
+
 const API_KEY = '8ceb3ebba03c4ddca51106af23868263';
 
 // ۱. مدیریت هماهنگ سرچ و دریافت لیست بازی‌ها
@@ -8,7 +11,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search');
 
-    // اگر پارامتر سرچ وجود داشت، سرور کلودفلر خودش مستقیماً به RAWG وصل می‌شود
     if (search) {
       const url = `https://api.rawg.io/api/games?key=${API_KEY}&search=${encodeURIComponent(search)}`;
       const rawgRes = await fetch(url);
@@ -21,7 +23,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(rawgData.results || []);
     }
 
-    // گرفتن دیتابیس مستقیماً از شیء گلوبال کلودفلر در کل فریم‌ورک‌ها
     const myKv = (process.env as any).GAME_KV || (globalThis as any).GAME_KV || (request as any).context?.env?.GAME_KV;
     
     if (!myKv) return NextResponse.json([]);
@@ -37,7 +38,6 @@ export async function GET(request: NextRequest) {
 // ۲. ذخیره بازی جدید در دیتابیس
 export async function POST(request: Request) {
   try {
-    // بررسی تمام راه‌های ممکن دسترسی به متغیرهای بایند شده در کلودفلر
     const myKv = (process.env as any).GAME_KV || (globalThis as any).GAME_KV || (request as any).context?.env?.GAME_KV;
 
     if (!myKv) {

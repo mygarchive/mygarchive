@@ -7,35 +7,43 @@ export default function AdminPage() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState('سیستم آماده کار است.');
+  const [msg, setMsg] = useState('🟢 سیستم آماده کار است.');
 
-  // اتصال دکمه سرچ مستقیم به RAWG
   const startSearch = async () => {
     if (!query.trim()) return;
     setLoading(true);
-    setMsg('در حال دریافت دیتای زنده از RAWG...');
+    setMsg('⏳ در حال ارسال درخواست به سرور خودتان برای سرچ...');
     
     try {
-      const apiKey = '8ceb3ebba03c4ddca51106af23868263';
-      const res = await fetch(`https://api.rawg.io/api/games?key=${apiKey}&search=${encodeURIComponent(query.trim())}`);
+      // درخواست به API داخلی سایت خودت (بدون بلاک شدن توسط مرورگر)
+      const res = await fetch(`/api/games?search=${encodeURIComponent(query.trim())}`);
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || `خطای سرور با کد ${res.status}`);
+      }
+
       const data = await res.json();
       
-      if (data && data.results) {
-        setResults(data.results);
-        setMsg(`موفقیت‌آمیز: ${data.results.length} بازی پیدا شد.`);
+      if (Array.isArray(data)) {
+        setResults(data);
+        setMsg(`✅ موفقیت‌آمیز: تعداد ${data.length} بازی یافت شد.`);
+        if (data.length === 0) {
+          alert('هیچ بازی با این نام پیدا نشد. نام انگلیسی را بررسی کنید.');
+        }
       } else {
-        setMsg('پاسخی از سرور دریافت نشد.');
+        setMsg('❌ فرمت پاسخ دریافتی از سرور معتبر نیست.');
       }
     } catch (e: any) {
-      setMsg('خطا در اتصال مستقیم: ' + e.message);
+      setMsg(`❌ خطا: ${e.message}`);
+      alert(`خطا در سیستم سرچ: ${e.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  // ذخیره بازی در دیتابیس کلودفلر
   const saveGame = async (game: any) => {
-    setMsg(`در حال ذخیره ${game.name}...`);
+    setMsg(`⏳ در حال ذخیره بازی "${game.name}"...`);
     try {
       const res = await fetch('/api/games', {
         method: 'POST',
@@ -54,14 +62,14 @@ export default function AdminPage() {
       });
       
       if (res.ok) {
-        alert(`✅ بازی "${game.name}" با موفقیت به صفحه اصلی سایتت اضافه شد!`);
-        setMsg('ذخیره شد.');
+        alert(`✅ بازی "${game.name}" با موفقیت ذخیره شد و به صفحه اصلی رفت!`);
+        setMsg('✅ ذخیره با موفقیت انجام شد.');
       } else {
         const err = await res.json();
-        alert(`❌ خطا: ${err.error}`);
+        alert(`❌ خطا در ذخیره: ${err.error}`);
       }
     } catch (err) {
-      alert('خطا در شبکه');
+      alert('❌ خطا در شبکه یا دیتابیس');
     }
   };
 
@@ -70,7 +78,7 @@ export default function AdminPage() {
       <div style={{ maxWidth: '600px', margin: '0 auto', backgroundColor: '#111827', padding: '20px', borderRadius: '15px', border: '1px solid #1f2937' }}>
         
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', alignItems: 'center' }}>
-          <h2 style={{ color: '#3b82f6', margin: 0 }}>🛠️ پنل مدیریت مخفی بازی‌ها</h2>
+          <h2 style={{ color: '#3b82f6', margin: 0 }}>🛠️ منوی کنترل ابری بازی‌ها</h2>
           <Link href="/" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '14px', border: '1px solid #374151', padding: '5px 10px', borderRadius: '8px' }}>
             مشاهده سایت اصلی
           </Link>
@@ -79,7 +87,7 @@ export default function AdminPage() {
         <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
           <input 
             type="text" 
-            placeholder="نام بازی به انگلیسی..." 
+            placeholder="نام بازی را انگلیسی بنویسید (مثلا: GTA V)..." 
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && startSearch()}
@@ -87,6 +95,7 @@ export default function AdminPage() {
           />
           <button 
             onClick={startSearch}
+            disabled={loading}
             style={{ padding: '12px 20px', borderRadius: '10px', border: 'none', backgroundColor: '#2563eb', color: '#fff', cursor: 'pointer', fontWeight: 'bold' }}
           >
             {loading ? 'صبر کنید...' : 'جستجو'}
@@ -94,7 +103,7 @@ export default function AdminPage() {
         </div>
 
         <div style={{ padding: '10px', backgroundColor: '#030712', borderRadius: '8px', fontSize: '13px', color: '#9ca3af', marginBottom: '15px' }}>
-          وضعیت سیستم: {msg}
+          وضعیت: {msg}
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -102,11 +111,7 @@ export default function AdminPage() {
             <div key={game.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px', backgroundColor: '#1f2937', borderRadius: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 {game.background_image && (
-                  <img 
-                    src={game.background_image} 
-                    alt="" 
-                    style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '5px' }} 
-                  />
+                  <img src={game.background_image} alt="" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '5px' }} />
                 )}
                 <span style={{ fontSize: '14px' }}>{game.name}</span>
               </div>

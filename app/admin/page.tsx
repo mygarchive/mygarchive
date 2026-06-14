@@ -13,16 +13,26 @@ export default function AdminPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !genre || !platform) {
-      setMessage("❌ لطفاً فیلدهای ستاره‌دار را پر کنید.");
+    if (!title) {
+      setMessage("❌ لطفاً نام بازی را وارد کنید.");
       return;
     }
 
     setLoading(true);
     setMessage("");
 
-    const gameId = title.toLowerCase().replace(/[^a-z0-9]/g, "-");
-    const newGame = { id: gameId, title, genre, platform, image: image || "https://placehold.co/600x400?text=No+Image" };
+    // تبدیل داده‌های فرم دستی به ساختار استاندارد RAWG برای سازگاری با فرانت‌اند
+    const newGame = {
+      id: "manual-" + Date.now().toString(),
+      name: title,
+      background_image: image || "https://placehold.co/600x400?text=" + encodeURIComponent(title),
+      rating: 5,
+      released: new Date().toISOString().split('T')[0],
+      playtime: 0,
+      genres: genre ? genre.split('،').map(g => ({ name: g.trim() })) : [{ name: 'نامشخص' }],
+      platforms: platform ? platform.split('،').map(p => ({ platform: { name: p.trim() } })) : [],
+      short_screenshots: []
+    };
 
     try {
       const res = await fetch("/api/games", {
@@ -33,7 +43,7 @@ export default function AdminPage() {
 
       const data = await res.json();
       if (res.ok) {
-        setMessage("✅ بازی با موفقیت در دیتابیس ابری ذخیره شد!");
+        setMessage("✅ بازی با موفقیت در دیتابیس کلودفلر ذخیره شد!");
         setTitle(""); setGenre(""); setPlatform(""); setImage("");
       } else {
         setMessage(`❌ خطا: ${data.error}`);
@@ -46,35 +56,35 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-6" dir="rtl">
-      <div className="max-w-md mx-auto bg-gray-800 rounded-lg p-6 shadow-xl border border-gray-700">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">🛠️ پنل مدیریت بازی‌ها</h1>
-          <Link href="/" className="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm transition">
+    <div className="min-h-screen bg-gray-950 text-white p-6" dir="rtl">
+      <div className="max-w-md mx-auto bg-gray-900 rounded-2xl p-6 shadow-2xl border border-gray-800">
+        <div className="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
+          <h1 className="text-xl font-bold text-blue-400">🛠️ پنل مدیریت بازی‌ها</h1>
+          <Link href="/" className="bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-xl text-xs transition border border-gray-700">
             بازگشت به سایت
           </Link>
         </div>
 
-        {message && <div className="mb-4 p-3 rounded bg-gray-700 text-center text-sm font-semibold">{message}</div>}
+        {message && <div className="mb-4 p-3 rounded-xl bg-gray-800 text-center text-xs font-semibold border border-gray-700">{message}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm mb-1">نام بازی *</label>
-            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white focus:outline-none focus:border-blue-500" placeholder="مثلا: GTA V" />
+            <label className="block text-xs text-gray-400 mb-1">نام بازی *</label>
+            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="مثلا: GTA V" />
           </div>
           <div>
-            <label className="block text-sm mb-1">ژانر *</label>
-            <input type="text" value={genre} onChange={(e) => setGenre(e.target.value)} className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white focus:outline-none focus:border-blue-500" placeholder="مثلا: اکشن، جهان باز" />
+            <label className="block text-xs text-gray-400 mb-1">ژانرها (با ، ویرگول جدا کنید)</label>
+            <input type="text" value={genre} onChange={(e) => setGenre(e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="مثلا: اکشن، جهان باز" />
           </div>
           <div>
-            <label className="block text-sm mb-1">پلتفرم *</label>
-            <input type="text" value={platform} onChange={(e) => setPlatform(e.target.value)} className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white focus:outline-none focus:border-blue-500" placeholder="مثلا: PC, PS5" />
+            <label className="block text-xs text-gray-400 mb-1">پلتفرم‌ها (با ، ویرگول جدا کنید)</label>
+            <input type="text" value={platform} onChange={(e) => setPlatform(e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="مثلا: PC، PS5" />
           </div>
           <div>
-            <label className="block text-sm mb-1">لینک کاور/عکس (اختیاری)</label>
-            <input type="text" value={image} onChange={(e) => setImage(e.target.value)} className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-left text-white focus:outline-none focus:border-blue-500" placeholder="https://example.com/image.jpg" dir="ltr" />
+            <label className="block text-xs text-gray-400 mb-1">لینک عکس کاور (اختیاری)</label>
+            <input type="text" value={image} onChange={(e) => setImage(e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500 text-left" placeholder="https://example.com/image.jpg" dir="ltr" />
           </div>
-          <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white font-bold py-2 px-4 rounded transition mt-4">
+          <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white font-bold py-3 px-4 rounded-xl transition text-sm mt-4 shadow-lg shadow-blue-500/20">
             {loading ? "در حال ذخیره..." : "➕ افزودن به دیتابیس کلودفلر"}
           </button>
         </form>

@@ -15,7 +15,6 @@ export default function AdminPage() {
     setMsg('⏳ در حال ارسال درخواست به سرور خودتان برای سرچ...');
     
     try {
-      // 🚀 اتصال به مسیر استاندارد و جدید سرچ در کلودفلر
       const res = await fetch(`/api-store?search=${encodeURIComponent(query.trim())}`);
       
       if (!res.ok) {
@@ -45,7 +44,6 @@ export default function AdminPage() {
   const saveGame = async (game: any) => {
     setMsg(`⏳ در حال ذخیره بازی "${game.name}"...`);
     try {
-      // 🚀 اتصال متد POST به دیتابیس بدون تداخل با فرانت‌آند
       const res = await fetch('/api-store', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -88,4 +86,45 @@ export default function AdminPage() {
         <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
           <input 
             type="text" 
-            placeholder="نام بازی را انگلیسی
+            placeholder="نام بازی را انگلیسی بنویسید (مثلا: GTA V)..." 
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && startSearch()}
+            style={{ flex: 1, padding: '12px', borderRadius: '10px', border: '1px solid #374151', backgroundColor: '#030712', color: '#fff', direction: 'ltr' }}
+          />
+          <button 
+            onClick={startSearch}
+            disabled={loading}
+            style={{ padding: '12px 20px', borderRadius: '10px', border: 'none', backgroundColor: '#2563eb', color: '#fff', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            {loading ? 'صبر کنید...' : 'جستجو'}
+          </button>
+        </div>
+
+        <div style={{ padding: '10px', backgroundColor: '#030712', borderRadius: '8px', fontSize: '13px', color: '#9ca3af', marginBottom: '15px' }}>
+          وضعیت: {msg}
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {results.map((game) => (
+            <div key={game.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px', backgroundColor: '#1f2937', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {game.background_image && (
+                  <img src={game.background_image} alt="" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '5px' }} />
+                )}
+                <span style={{ fontSize: '14px' }}>{game.name}</span>
+              </div>
+              <button 
+                onClick={() => saveGame(game)}
+                style={{ backgroundColor: '#16a34a', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}
+              >
+                ➕ اضافه به سایت
+              </button>
+            </div>
+          ))}
+        </div>
+
+      </div>
+    </div>
+  );
+}

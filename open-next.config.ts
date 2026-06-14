@@ -1,10 +1,18 @@
 const config = {
   default: {
-    runtime: "edge",
-    placement: "global",
+    override: {
+      wrapper: "cloudflare-node",
+      converter: "edge",
+      proxyExternalRequest: "fetch",
+    },
   },
   middleware: {
-    runtime: "edge",
+    external: true,
+    override: {
+      wrapper: "cloudflare-edge",
+      converter: "edge",
+      proxyExternalRequest: "fetch",
+    },
   },
 };
 

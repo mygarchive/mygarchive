@@ -11,10 +11,5 @@ binding = "ASSETS"
 binding = "GAME_KV"
 id = "a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1"
 
-[[kv_namespaces]]
-binding = "NEXT_CACHE_WORKERS_KV"
-preview_binding = "NEXT_CACHE_WORKERS_KV_PREVIEW"
-id = "NEXT_CACHE_WORKERS_KV"
-
 [vars]
 NEXT_ANALYTICS_ID = ""

@@ -1,93 +1,128 @@
-"use client";
+'use client';
+import { useState } from 'react';
+import Link from 'next/link';
 
-import { useState } from "react";
-import Link from "next/link";
+interface Game {
+  id: any;
+  name: string;
+  background_image: string;
+  rating: number;
+  released: string;
+  playtime: number;
+  genres: { name: string }[];
+  platforms?: { platform: { name: string }; requirements_en?: { minimum?: string; recommended?: string } | null }[];
+  short_screenshots?: { id: number; image: string }[];
+}
+
+const API_KEY = '8ceb3ebba03c4ddca51106af23868263'; 
 
 export default function AdminPage() {
-  const [title, setTitle] = useState("");
-  const [genre, setGenre] = useState("");
-  const [platform, setPlatform] = useState("");
-  const [image, setImage] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Game[]>([]);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const [savingId, setSavingId] = useState<any>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title) {
-      setMessage("❌ لطفاً نام بازی را وارد کنید.");
-      return;
-    }
-
+  const searchGames = async () => {
+    if (!searchQuery) return;
     setLoading(true);
-    setMessage("");
-
-    // تبدیل داده‌های فرم دستی به ساختار استاندارد RAWG برای سازگاری با فرانت‌اند
-    const newGame = {
-      id: "manual-" + Date.now().toString(),
-      name: title,
-      background_image: image || "https://placehold.co/600x400?text=" + encodeURIComponent(title),
-      rating: 5,
-      released: new Date().toISOString().split('T')[0],
-      playtime: 0,
-      genres: genre ? genre.split('،').map(g => ({ name: g.trim() })) : [{ name: 'نامشخص' }],
-      platforms: platform ? platform.split('،').map(p => ({ platform: { name: p.trim() } })) : [],
-      short_screenshots: []
-    };
-
     try {
-      const res = await fetch("/api/games", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newGame),
-      });
-
+      const res = await fetch(`https://api.rawg.io/api/games?key=${API_KEY}&search=${searchQuery}`);
       const data = await res.json();
-      if (res.ok) {
-        setMessage("✅ بازی با موفقیت در دیتابیس کلودفلر ذخیره شد!");
-        setTitle(""); setGenre(""); setPlatform(""); setImage("");
-      } else {
-        setMessage(`❌ خطا: ${data.error}`);
-      }
+      setSearchResults(data.results || []);
     } catch (err) {
-      setMessage("❌ خطا در برقراری ارتباط با سرور");
+      alert('خطا در دریافت اطلاعات بازی‌ها از سرور مرجع');
     } finally {
       setLoading(false);
     }
   };
 
+  const addGameToSite = async (game: Game) => {
+    setSavingId(game.id);
+    try {
+      // بهینه‌سازی دیتای فوق‌العاده حجیم سرور برای ذخیره‌سازی تمیز در کلودفلر
+      const optimizedGame = {
+        id: game.id.toString(),
+        name: game.name,
+        background_image: game.background_image || 'https://placehold.co/600x400?text=No+Image',
+        rating: game.rating || 0,
+        released: game.released || '---',
+        playtime: game.playtime || 0,
+        genres: game.genres ? game.genres.map(g => ({ name: g.name })) : [],
+        platforms: game.platforms ? game.platforms.map(p => ({
+          platform: { name: p.platform.name },
+          requirements_en: p.requirements_en ? {
+            minimum: p.requirements_en.minimum || '',
+            recommended: p.requirements_en.recommended || ''
+          } : null
+        })) : [],
+        short_screenshots: game.short_screenshots ? game.short_screenshots.map(s => ({ id: s.id, image: s.image })) : []
+      };
+
+      const res = await fetch('/api/games', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(optimizedGame)
+      });
+      
+      const result = await res.json();
+      
+      if (res.ok) {
+        alert(`✅ بازی "${game.name}" با موفقیت به سرور اصلی اضافه شد و در صفحه اصلی قرار گرفت!`);
+      } else {
+        alert(`❌ خطا: ${result.error}`);
+      }
+    } catch (err) {
+      alert('خطا در برقراری ارتباط با دیتابیس کلودفلر');
+    } finally {
+      setSavingId(null);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-6" dir="rtl">
-      <div className="max-w-md mx-auto bg-gray-900 rounded-2xl p-6 shadow-2xl border border-gray-800">
+    <div className="min-h-screen bg-gray-950 text-white p-4 md:p-8" dir="rtl">
+      <div className="max-w-2xl mx-auto bg-gray-900 rounded-2xl p-6 shadow-2xl border border-gray-800">
         <div className="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
-          <h1 className="text-xl font-bold text-blue-400">🛠️ پنل مدیریت بازی‌ها</h1>
-          <Link href="/" className="bg-gray-800 hover:bg-gray-700 px-3 py-1.5 rounded-xl text-xs transition border border-gray-700">
-            بازگشت به سایت
+          <h1 className="text-xl font-bold text-blue-500">🛠️ دیتاسنتر و مدیریت مخفی بازی‌ها</h1>
+          <Link href="/" className="bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-xl text-xs transition border border-gray-700---">
+            مشاهده سایت اصلی
           </Link>
         </div>
 
-        {message && <div className="mb-4 p-3 rounded-xl bg-gray-800 text-center text-xs font-semibold border border-gray-700">{message}</div>}
+        <p className="text-xs text-gray-400 mb-4 font-semibold">اسم بازی مورد نظر را انگلیسی سرچ کنید تا تمام اطلاعات آن از سرور جهانی استخراج و آماده ذخیره شود.</p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs text-gray-400 mb-1">نام بازی *</label>
-            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="مثلا: GTA V" />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-400 mb-1">ژانرها (با ، ویرگول جدا کنید)</label>
-            <input type="text" value={genre} onChange={(e) => setGenre(e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="مثلا: اکشن، جهان باز" />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-400 mb-1">پلتفرم‌ها (با ، ویرگول جدا کنید)</label>
-            <input type="text" value={platform} onChange={(e) => setPlatform(e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="مثلا: PC، PS5" />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-400 mb-1">لینک عکس کاور (اختیاری)</label>
-            <input type="text" value={image} onChange={(e) => setImage(e.target.value)} className="w-full bg-gray-950 border border-gray-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500 text-left" placeholder="https://example.com/image.jpg" dir="ltr" />
-          </div>
-          <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white font-bold py-3 px-4 rounded-xl transition text-sm mt-4 shadow-lg shadow-blue-500/20">
-            {loading ? "در حال ذخیره..." : "➕ افزودن به دیتابیس کلودفلر"}
+        <div className="flex gap-2 mb-6">
+          <input 
+            type="text" 
+            placeholder="مثلا: Cyberpunk 2077" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1 bg-gray-950 text-white px-4 py-3 rounded-xl border border-gray-800 focus:outline-none focus:border-blue-500 text-left text-sm"
+            dir="ltr"
+          />
+          <button onClick={searchGames} disabled={loading} className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 px-6 py-3 rounded-xl font-bold transition text-sm">
+            {loading ? 'در حال جستجو...' : 'جستجوی هوشمند'}
           </button>
-        </form>
+        </div>
+
+        {searchResults.length > 0 && (
+          <div className="grid grid-cols-1 gap-3 bg-gray-950 p-3 rounded-xl max-h-96 overflow-y-auto border border-gray-800">
+            {searchResults.map(game => (
+              <div key={game.id} className="flex items-center justify-between bg-gray-900 p-3 rounded-lg border border-gray-800">
+                <div className="flex items-center gap-3">
+                  <img src={game.background_image} alt={game.name} className="w-12 h-12 object-cover rounded-lg" />
+                  <span className="text-sm font-semibold text-gray-200">{game.name}</span>
+                </div>
+                <button 
+                  disabled={savingId !== null}
+                  onClick={() => addGameToSite(game)} 
+                  className="bg-green-600 hover:bg-green-700 text-xs px-3 py-1.5 rounded-lg font-medium transition disabled:bg-gray-600"
+                >
+                  {savingId === game.id ? 'در حال ذخیره روی ابر...' : '➕ اضافه به دیتابیس اصلی'}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

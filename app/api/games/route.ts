@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const API_KEY = '8ceb3ebba03c4ddca51106af23868263';
 
-// 🛠️ تابع اصلاح‌شده مخصوص معماری Workers با OpenNext
+// تنظیم هدرها برای دور زدن هرگونه کش در کلودفلر
+const corsHeaders = {
+  'Cache-Control': 'no-cache, no-transform, max-age=0',
+  'Content-Type': 'application/json',
+};
+
 function getCloudflareKV(request: any) {
   return (
     (request as any).context?.runtime?.env?.GAME_KV ||
@@ -13,7 +18,7 @@ function getCloudflareKV(request: any) {
   );
 }
 
-// ۱. مدیریت هماهنگ سرچ و دریافت لیست بازی‌ها
+// ۱. دریافت لیست بازی‌ها
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -24,25 +29,25 @@ export async function GET(request: NextRequest) {
       const rawgRes = await fetch(url);
       
       if (!rawgRes.ok) {
-        return NextResponse.json({ error: `خطای سرور مرجع: ${rawgRes.status}` }, { status: rawgRes.status });
+        return NextResponse.json({ error: `خطای سرور مرجع: ${rawgRes.status}` }, { status: rawgRes.status }, { headers: corsHeaders });
       }
 
       const rawgData = await rawgRes.json();
-      return NextResponse.json(rawgData.results || []);
+      return NextResponse.json(rawgData.results || [], { headers: corsHeaders });
     }
 
     const myKv = getCloudflareKV(request);
-    if (!myKv) return NextResponse.json([]);
+    if (!myKv) return NextResponse.json([], { headers: corsHeaders });
 
     const gamesData = await myKv.get("games_list");
-    return NextResponse.json(gamesData ? JSON.parse(gamesData) : []);
+    return NextResponse.json(gamesData ? JSON.parse(gamesData) : [], { headers: corsHeaders });
 
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'خطای ناشناخته' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'خطای ناشناخته' }, { status: 500 }, { headers: corsHeaders });
   }
 }
 
-// ۲. ذخیره بازی جدید در دیتابیس
+// ۲. ذخیره بازی جدید
 export async function POST(request: NextRequest) {
   try {
     const myKv = getCloudflareKV(request);
@@ -50,7 +55,7 @@ export async function POST(request: NextRequest) {
     if (!myKv) {
       return NextResponse.json({ 
         error: "اتصال به دیتابیس برقرار نیست. لطفا با ادمین تماس بگیرید." 
-      }, { status: 500 });
+      }, { status: 500 }, { headers: corsHeaders });
     }
 
     const gameData = await request.json();
@@ -58,13 +63,13 @@ export async function POST(request: NextRequest) {
     const games = gamesData ? JSON.parse(gamesData) : [];
     
     if (games.some((g: any) => g.id.toString() === gameData.id.toString())) {
-      return NextResponse.json({ error: 'این بازی قبلاً اضافه شده است.' }, { status: 400 });
+      return NextResponse.json({ error: 'این بازی قبلاً اضافه شده است.' }, { status: 400 }, { headers: corsHeaders });
     }
     
     games.push(gameData);
     await myKv.put("games_list", JSON.stringify(games));
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true }, { headers: corsHeaders });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500 }, { headers: corsHeaders });
   }
 }

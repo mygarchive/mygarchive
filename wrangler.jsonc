@@ -6,6 +6,12 @@
   "compatibility_flags": [
     "nodejs_compat"
   ],
+  "kv_namespaces": [
+    {
+      "binding": "GAME_KV",
+      "id": "8eae5519530840cea50bcf1769e7ee52"
+    }
+  ],
   "observability": {
     "enabled": true
   }

@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const API_KEY = '8ceb3ebba03c4ddca51106af23868263';
 
-// هدرهای استاندارد برای دور زدن کش سرور
+// هدرهای ضد کش برای مجبور کردن کلودفلر به خواندن دیتای زنده
 const corsHeaders = {
-  'Cache-Control': 'no-cache, no-transform, max-age=0',
+  'Cache-Control': 'no-cache, no-transform, max-age=0, must-revalidate',
   'Content-Type': 'application/json',
 };
 
@@ -18,7 +18,7 @@ function getCloudflareKV(request: any) {
   );
 }
 
-// ۱. دریافت لیست بازی‌ها از دیتابیس یا سرچ در RAWG
+// ۱. دریافت لیست بازی‌ها یا سرچ مستقیم
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -53,14 +53,14 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// ۲. ذخیره بازی جدید در دیتابیس کلودفلر
+// ۲. ذخیره بازی جدید در KV کلودفلر
 export async function POST(request: NextRequest) {
   try {
     const myKv = getCloudflareKV(request);
 
     if (!myKv) {
       return NextResponse.json(
-        { error: "اتصال به دیتابیس برقرار نیست. لطفا با ادمین تماس بگیرید." }, 
+        { error: "اتصال به دیتابیس (KV) برقرار نیست. لطفاً متغیر GAME_KV را در پنل چک کنید." }, 
         { status: 500, headers: corsHeaders }
       );
     }

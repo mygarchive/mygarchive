@@ -34,21 +34,14 @@ export default function Home() {
       
       <div className="max-w-6xl mx-auto relative z-10">
         
-        {/* هدر سایت با متن اصلاح شده و فوق‌العاده شیک */}
+        {/* هدر سایت - کاملاً عمومی و بدون دکمه ادمین */}
         <header className="flex flex-col md:flex-row justify-between items-center gap-4 mb-12 border-b border-slate-900 pb-6">
           <div>
             <h1 className="text-3xl md:text-5xl font-black text-white mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-500 to-red-400">
               لیست بازی‌ها
             </h1>
-            <p className="text-slate-400 text-sm md:text-base font-medium">آرشیو جامع مشخصات، تریلرها و گالری تصاویر بازی‌های من</p>
+            <p className="text-slate-400 text-sm md:text-base font-medium">آرشیو جامع مشخصات، تریلرها و گالری تصاویر بازی‌ها</p>
           </div>
-
-          <Link
-            href="/admin"
-            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-2xl shadow-lg shadow-purple-900/30 transition duration-300 transform hover:-translate-y-0.5 text-sm"
-          >
-            ⚙️ ورود به پنل مدیریت
-          </Link>
         </header>
 
         {loading && (
@@ -63,10 +56,10 @@ export default function Home() {
           </div>
         )}
 
+        {/* متن کاملاً خنثی و شیک در صورت خالی بودن دیتابیس بدون نام بردن از ادمین */}
         {!loading && games.length === 0 && (
           <div className="text-center py-20 bg-slate-900/20 border border-slate-900/60 rounded-3xl backdrop-blur-md">
-            <p className="text-slate-400 font-medium text-lg">هنوز هیچ بازی به لیست خود اضافه نکرده‌اید.</p>
-            <Link href="/admin" className="text-purple-400 text-sm mt-3 inline-block hover:underline">اضافه کردن اولین بازی از پنل ادمین ←</Link>
+            <p className="text-slate-400 font-medium text-lg">در حال حاضر بازی خاصی در این بخش ثبت نشده است.</p>
           </div>
         )}
 

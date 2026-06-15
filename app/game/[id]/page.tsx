@@ -7,42 +7,54 @@ import Link from 'next/link';
 export default function GameDetails() {
   const { id } = useParams();
   const [game, setGame] = useState<any>(null);
+  const [steamUrl, setSteamUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImgIndex, setActiveImgIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!id) return;
 
-    // ۱. دریافت دیتای ذخیره شده از دیتابیس خودمان
+    // ۱. دریافت دیتای محلی از دیتابیس
     fetch(`/api-store?id=${id}`)
       .then((res) => res.json())
       .then(async (localData) => {
         if (localData) {
-          // ۲. دریافت دیتای زنده برای کامل کردن سازندگان، ناشران و لینک‌های فروشگاهی (مثل استیم)
           try {
             const apiKey = '8ceb3ebba03c4ddca51106af23868263';
+            
+            // ۲. درخواست زنده به RAWG برای دریافت جزئیات ناشر و سازنده
             const rawgRes = await fetch(`https://api.rawg.io/api/games/${localData.id}?key=${apiKey}`);
+            let currentGameData = { ...localData };
+
             if (rawgRes.ok) {
               const liveData = await rawgRes.json();
-              
-              // ترکیب دیتای لوکال با دیتای زنده و کامل RAWG
-              setGame({
+              currentGameData = {
                 ...localData,
                 developers: liveData.developers || localData.developers || [],
                 publishers: liveData.publishers || localData.publishers || [],
                 platforms: liveData.platforms || localData.platforms || [],
-                stores: liveData.stores || localData.stores || [],
-                // اگر تریلر یا ویدیو جدیدی هم در دیتای زنده بود جایگزین شود
                 clip: liveData.clip || localData.clip || null
-              });
-              setLoading(false);
-              return;
+              };
             }
+
+            // ۳. 🌟 درخواست مجزا به API فروشگاه‌های RAWG برای پیدا کردن لینک مستقیم استیم
+            const storesRes = await fetch(`https://api.rawg.io/api/games/${localData.id}/stores?key=${apiKey}`);
+            if (storesRes.ok) {
+              const storesData = await storesRes.json();
+              // پیدا کردن فروشگاهی که آیدی آن ۱ (استیم) است یا نام استیم دارد
+              const steamStore = storesData.results?.find(
+                (s: any) => s.store_id === 1 || s.url?.includes('store.steampowered.com')
+              );
+              if (steamStore?.url) {
+                setSteamUrl(steamStore.url);
+              }
+            }
+
+            setGame(currentGameData);
           } catch (err) {
-            console.error('Error fetching live data from RAWG:', err);
+            console.error('Error fetching live details from RAWG:', err);
+            setGame(localData);
           }
-          
-          setGame(localData);
         }
         setLoading(false);
       })
@@ -105,7 +117,6 @@ export default function GameDetails() {
 
   const formatRequirements = (reqText: any) => {
     if (!reqText || typeof reqText !== 'string') return [];
-    
     return reqText
       .replace(/Minimum:|Recommended:/gi, '')
       .split(/(?=Processor:|Graphics:|Memory:|OS:|Storage:|DirectX:|Sound Card:|Network:)/i)
@@ -130,13 +141,7 @@ export default function GameDetails() {
   const reqsRaw = pcPlatform?.requirements_en || pcPlatform?.requirements_ru || pcPlatform?.requirements || null;
 
   const galleryImages = game.short_screenshots?.slice(1) || [];
-  
-  // استخراج ویدیو یا کلیپ گیم‌پلی بازی
   const gameVideo = game.clip?.clips?.medium || game.clip?.clip || null;
-
-  // 🌟 استخراج و پیدا کردن لینک مستقیم استیم (Steam) بازی
-  const steamStore = game.stores?.find((s: any) => s.store?.slug === 'steam' || s.store?.name?.toLowerCase() === 'steam');
-  const steamUrl = steamStore?.url || null;
 
   let finalMinimumLines: string[] = [];
   let finalRecommendedLines: string[] = [];
@@ -197,16 +202,14 @@ export default function GameDetails() {
                 <p className="text-slate-400">🏷️ ژانرها: <span className="text-purple-400 font-bold">{game.genres?.map((g: any) => g.name).join(' ، ') || '---'}</span></p>
                 <p className="text-slate-400">💻 توسعه‌دهنده: <span className="text-teal-400 font-bold">{game.developers?.map((d: any) => d.name).join(' ، ') || 'ثبت نشده'}</span></p>
                 <p className="text-slate-400">🏢 ناشر بازی: <span className="text-blue-400 font-bold">{game.publishers?.map((p: any) => p.name).join(' ، ') || 'ثبت نشده'}</span></p>
-                <p className="text-slate-400 sm:col-span-2">🛒 فروشگاه‌های رسمی: <span className="text-slate-200 font-medium">{game.stores?.map((s: any) => s.store?.name).join(' ، ') || '---'}</span></p>
                 
-                {/* 🎮 دکمه شیک لینک مستقیم استیم (فقط در صورت وجود لینک) */}
                 {steamUrl && (
                   <div className="sm:col-span-2 mt-2">
                     <a 
                       href={steamUrl} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white px-5 py-3 rounded-2xl font-bold text-center transition shadow-lg shadow-blue-950/40 text-xs md:text-sm"
+                      className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white px-5 py-3 rounded-2xl font-bold text-center transition shadow-lg shadow-blue-950/40 text-xs md:text-sm"
                     >
                       🎮 مشاهده و دریافت بازی از Steam
                     </a>
@@ -228,7 +231,6 @@ export default function GameDetails() {
           </div>
         </div>
 
-        {/* بخش نمایش فیلم و تریلر گیم‌پلی بازی */}
         {gameVideo && (
           <section className="mb-8 bg-slate-900/30 border border-slate-900 p-6 rounded-3xl backdrop-blur-sm">
             <h3 className="text-lg font-bold mb-4 text-slate-300 border-r-4 border-purple-500 pr-2">🎬 تریلر رسمی بازی</h3>

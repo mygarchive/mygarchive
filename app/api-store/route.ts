@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL || '';
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || '';
 
-// تابع ارتباط مستقیم و استاندارد با دیتابیس آپستاش
 async function runRedisCommand(command: string[]) {
   if (!UPSTASH_URL || !UPSTASH_TOKEN) {
     console.error('Upstash credentials are missing!');
@@ -28,7 +27,7 @@ async function runRedisCommand(command: string[]) {
     }
     
     const data = await res.json();
-    return data.result; // بازگرداندن مستقیم خروجی دیتابیس
+    return data.result;
   } catch (err) {
     console.error('Upstash communication error:', err);
     return null;
@@ -41,7 +40,6 @@ export async function GET(request: Request) {
     const search = searchParams.get('search');
     const id = searchParams.get('id');
 
-    // ۱. بخش جستجوی بازی از API اصلی RAWG با توکن اختصاصی حسین
     if (search) {
       const apiKey = '8ceb3ebba03c4ddca51106af23868263';
       const apiUrl = `https://api.rawg.io/api/games?key=${apiKey}&search=${encodeURIComponent(search)}&page_size=12`;
@@ -55,7 +53,6 @@ export async function GET(request: Request) {
       return NextResponse.json(data.results || []);
     }
 
-    // ۲. دریافت اطلاعات کل بازی‌ها از دیتابیس آپستاش
     const rawValues = await runRedisCommand(['HVALS', 'my_games_dict']);
     
     if (!rawValues || !Array.isArray(rawValues) || rawValues.length === 0) {
@@ -72,7 +69,6 @@ export async function GET(request: Request) {
       })
       .filter(Boolean);
 
-    // فیلتر بر اساس آیدی (برای صفحه جزئیات بازی)
     if (id) {
       const singleGame = gamesList.find((g: any) => g.id.toString() === id.toString());
       return NextResponse.json(singleGame || null);
@@ -92,7 +88,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'دیتا یا شناسه بازی معتبر نیست' }, { status: 400 });
     }
 
-    // ذخیره مستقیم دیتای ارسالی ادمین در دیتابیس
     const result = await runRedisCommand(['HSET', 'my_games_dict', body.id.toString(), JSON.stringify(body)]);
     
     if (result === null) {

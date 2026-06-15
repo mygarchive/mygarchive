@@ -10,15 +10,14 @@ export default function GameDetails() {
   const [loading, setLoading] = useState(true);
   const [activeImgIndex, setActiveImgIndex] = useState<number | null>(null);
 
-  // لود سریع اطلاعات بازی با تغییر اولویت درخواست شبکه
   useEffect(() => {
     if (!id) return;
 
-    fetch('/api-store/')
+    // اصلاح اسلش انتهایی آدرس برای جلوگیری از ارور روتینگ
+    fetch(`/api-store?id=${id}`)
       .then((res) => res.json())
       .then((data) => {
-        const found = Array.isArray(data) ? data.find((g: any) => g.id.toString() === id.toString()) : null;
-        setGame(found || null);
+        setGame(data || null);
         setLoading(false);
       })
       .catch((err) => {
@@ -87,7 +86,6 @@ export default function GameDetails() {
       .filter(line => line.length > 0);
   };
 
-  // ⏳ لودینگ اسکلتونی فوق‌العاده مدرن و پرسرعت به جای متن قدیمی
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 p-6 md:p-12 max-w-5xl mx-auto animate-pulse" dir="rtl">

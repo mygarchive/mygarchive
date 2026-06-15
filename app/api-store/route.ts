@@ -3,25 +3,48 @@ import { NextResponse } from 'next/server';
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL || '';
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || '';
 
+// 🔍 تابع دیباگ برای بررسی وضعیت متغیرها در لاگ سرور
+function debugEnvironment() {
+  console.log("--- DEBUG UPSTASH CONFIG ---");
+  console.log("URL Configured:", UPSTASH_URL ? "YES (Starts with: " + UPSTASH_URL.substring(0, 15) + ")" : "NO (EMPTY)");
+  console.log("Token Configured:", UPSTASH_TOKEN ? "YES (Starts with: " + UPSTASH_TOKEN.substring(0, 8) + "... Length: " + UPSTASH_TOKEN.length + ")" : "NO (EMPTY)");
+  console.log("----------------------------");
+}
+
 async function runRedisCommand(command: string[]) {
+  // اجرای دیباگ در هر درخواست
+  debugEnvironment();
+
   if (!UPSTASH_URL || !UPSTASH_TOKEN) {
-    console.error('Upstash credentials are missing!');
+    console.error('Upstash credentials are missing in process.env!');
     return null;
   }
 
   try {
-    const res = await fetch(`${UPSTASH_URL.trim()}`, {
+    // اصلاح فرمت آدرس: مطمئن می‌شویم آدرس به / pipeline ختم شود تا دستورات آرایه‌ای درست کار کنند
+    const baseUrl = UPSTASH_URL.trim().replace(/\/$/, '');
+    const finalUrl = `${baseUrl}/pipeline`;
+
+    const res = await fetch(finalUrl, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${UPSTASH_TOKEN.trim()}`,
+        'Authorization': `Bearer ${UPSTASH_TOKEN.trim()}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(command),
+      // دستورات به صورت آرایه‌ای از آرایه‌ها ارسال می‌شوند
+      body: JSON.stringify([command]),
     });
 
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.error(`Upstash Response Error! Status: ${res.status} ${res.statusText}`);
+      const errorText = await res.text();
+      console.error("Upstash Error Body:", errorText);
+      return null;
+    }
+    
     const data = await res.json();
-    return data.result;
+    // چون دستور به صورت خط لوله (pipeline) فرستاده شده، نتیجه اولین دستور را برمی‌گردانیم
+    return data[0]?.result;
   } catch (err) {
     console.error('Upstash communication error:', err);
     return null;
@@ -36,6 +59,13 @@ export async function GET(request: Request) {
 
     // ۱. بخش جستجوی بازی از API اصلی RAWG
     if (search) {
+      // ابتدا بررسی می‌کنیم آیا دیتابیس در دسترس است یا کلا توکن ایراد دارد
+      // هدف این است که حتی اگر دیتابیس ارور داد، بفهمیم لاگ‌ها چه می‌گویند
+      const testRedis = await runRedisCommand(['EXISTS', 'my_games_dict']);
+      if (testRedis === null) {
+        return NextResponse.json({ error: 'خطای احراز هویت دیتابیس (401)' }, { status: 401 });
+      }
+
       const apiKey = '68b92b6794614ffcb7d091e0a9d80fc4';
       const apiUrl = `https://api.rawg.io/api/games?key=${apiKey}&search=${encodeURIComponent(search)}&page_size=12`;
       
@@ -65,7 +95,6 @@ export async function GET(request: Request) {
       })
       .filter(Boolean);
 
-    // اگر آیدی خاصی فرستاده شده بود، فقط همان بازی را فیلتر کن و برگردان
     if (id) {
       const singleGame = gamesList.find((g: any) => g.id.toString() === id.toString());
       return NextResponse.json(singleGame || null);

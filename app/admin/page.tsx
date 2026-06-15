@@ -15,7 +15,8 @@ export default function AdminPage() {
     setMsg('⏳ در حال ارسال درخواست به سرور خودتان برای سرچ...');
     
     try {
-      const res = await fetch(`/api-store?search=${encodeURIComponent(query.trim())}`);
+      // تغییر آدرس به /api-store/ برای روتینگ دقیق‌تر کلودفلر
+      const res = await fetch(`/api-store/?search=${encodeURIComponent(query.trim())}`);
       
       if (!res.ok) {
         const errorData = await res.json();
@@ -44,7 +45,8 @@ export default function AdminPage() {
   const saveGame = async (game: any) => {
     setMsg(`⏳ در حال ذخیره بازی "${game.name}"...`);
     try {
-      const res = await fetch('/api-store', {
+      // تغییر آدرس به /api-store/ برای روتینگ دقیق‌تر کلودفلر
+      const res = await fetch('/api-store/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -128,4 +130,3 @@ export default function AdminPage() {
     </div>
   );
 }
-

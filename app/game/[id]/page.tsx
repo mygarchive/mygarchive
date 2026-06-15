@@ -14,7 +14,7 @@ export default function GameDetails() {
   useEffect(() => {
     if (!id) return;
 
-    fetch('/api-store/', { priority: 'high' } as any)
+    fetch('/api-store/')
       .then((res) => res.json())
       .then((data) => {
         const found = Array.isArray(data) ? data.find((g: any) => g.id.toString() === id.toString()) : null;

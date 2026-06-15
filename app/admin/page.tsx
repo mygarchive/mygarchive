@@ -58,10 +58,11 @@ export default function AdminPanel() {
     } catch (err: any) {
       setMessage({ text: err.message, isError: true });
     } finally {
-      setLoading(false);
+      loading && setLoading(false);
     }
   };
 
+  // 🚀 اصلاح شده: این متد دیگر مستقیم به RAWG وصل نمی‌شود و فیلترینگ را دور می‌زند
   const handleAddGame = async (game: any) => {
     setMessage({ text: '', isError: false });
     
@@ -71,35 +72,7 @@ export default function AdminPanel() {
     }
 
     try {
-      const apiKey = '8ceb3ebba03c4ddca51106af23868263';
-      let steamUrl = null;
-      let developers = game.developers || [];
-      let publishers = game.publishers || [];
-      let platforms = game.platforms || [];
-      let clip = game.clip || null;
-
-      // دریافت جزئیات تکمیلی زنده فقط در زمان ادمین برای ذخیره یکباره در آپستاش
-      const detailRes = await fetch(`https://api.rawg.io/api/games/${game.id}?key=${apiKey}`);
-      if (detailRes.ok) {
-        const detailData = await detailRes.json();
-        developers = detailData.developers || developers;
-        publishers = detailData.publishers || publishers;
-        platforms = detailData.platforms || platforms;
-        clip = detailData.clip || clip;
-      }
-
-      // استخراج هوشمند لینک استیم در بخش ادمین
-      const storesRes = await fetch(`https://api.rawg.io/api/games/${game.id}/stores?key=${apiKey}`);
-      if (storesRes.ok) {
-        const storesData = await storesRes.json();
-        const steamStore = storesData.results?.find(
-          (s: any) => s.store_id === 1 || s.url?.includes('store.steampowered.com')
-        );
-        if (steamStore?.url) {
-          steamUrl = steamStore.url;
-        }
-      }
-
+      // فقط ساختار اولیه را به سرور می‌فرستیم، سرور خودش جزییات زنده را از RAWG می‌گیرد.
       const res = await fetch('/api-store', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -110,22 +83,17 @@ export default function AdminPanel() {
           rating: game.rating,
           background_image: game.background_image,
           short_screenshots: game.short_screenshots,
-          platforms: platforms, 
           genres: game.genres,
           playtime: game.playtime,
           esrb_rating: game.esrb_rating,
-          developers: developers, 
-          publishers: publishers, 
-          tags: game.tags || [],              
-          clip: clip,
-          steam_url: steamUrl // لینک استیم به سلامت وارد کپسول دیتابیس Upstash می‌شود
+          tags: game.tags || []
         }),
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'خطا در ذخیره‌سازی بازی');
 
-      setMessage({ text: `بازی "${game.name}" با موفقیت به همراه اطلاعات تکمیلی و لینک استیم ذخیره شد.`, isError: false });
+      setMessage({ text: `بازی "${game.name}" با موفقیت (از طریق سرور امن خارج از کشور) به همراه دیتای تکمیلی ذخیره شد.`, isError: false });
       fetchMyGames();
     } catch (err: any) {
       setMessage({ text: err.message, isError: true });

@@ -7,55 +7,23 @@ import Link from 'next/link';
 export default function GameDetails() {
   const { id } = useParams();
   const [game, setGame] = useState<any>(null);
-  const [steamUrl, setSteamUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImgIndex, setActiveImgIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!id) return;
 
+    // ⚡ لود مستقیم و آنی از Upstash بدون کوچکترین معطلی برای سرورهای خارجی
     fetch(`/api-store?id=${id}`)
       .then((res) => res.json())
-      .then(async (localData) => {
+      .then((localData) => {
         if (localData) {
-          try {
-            const apiKey = '8ceb3ebba03c4ddca51106af23868263';
-            
-            const rawgRes = await fetch(`https://api.rawg.io/api/games/${localData.id}?key=${apiKey}`);
-            let currentGameData = { ...localData };
-
-            if (rawgRes.ok) {
-              const liveData = await rawgRes.json();
-              currentGameData = {
-                ...localData,
-                developers: liveData.developers || localData.developers || [],
-                publishers: liveData.publishers || localData.publishers || [],
-                platforms: liveData.platforms || localData.platforms || [],
-                clip: liveData.clip || localData.clip || null
-              };
-            }
-
-            const storesRes = await fetch(`https://api.rawg.io/api/games/${localData.id}/stores?key=${apiKey}`);
-            if (storesRes.ok) {
-              const storesData = await storesRes.json();
-              const steamStore = storesData.results?.find(
-                (s: any) => s.store_id === 1 || s.url?.includes('store.steampowered.com')
-              );
-              if (steamStore?.url) {
-                setSteamUrl(steamStore.url);
-              }
-            }
-
-            setGame(currentGameData);
-          } catch (err) {
-            console.error('Error fetching live details from RAWG:', err);
-            setGame(localData);
-          }
+          setGame(localData);
         }
-        loading && setLoading(false);
+        setLoading(false);
       })
       .catch((err) => {
-        console.error('Error:', err);
+        console.error('Error fetching game details from database:', err);
         setLoading(false);
       });
   }, [id]);
@@ -177,11 +145,7 @@ export default function GameDetails() {
           
           <div className="lg:col-span-3 w-full overflow-hidden rounded-2xl border border-slate-800/60 bg-slate-950/40">
             {game.background_image ? (
-              <img 
-                src={getBypassUrl(game.background_image)} 
-                alt={game.name} 
-                className="w-full h-auto max-h-[420px] object-contain mx-auto" 
-              />
+              <img src={getBypassUrl(game.background_image)} alt={game.name} className="w-full h-auto max-h-[420px] object-contain mx-auto" />
             ) : (
               <div className="w-full h-64 bg-slate-900 rounded-2xl flex items-center justify-center text-slate-600">بدون تصویر</div>
             )}
@@ -199,11 +163,11 @@ export default function GameDetails() {
                 <p className="text-slate-400">💻 توسعه‌دهنده: <span className="text-teal-400 font-bold">{game.developers?.map((d: any) => d.name).join(' ، ') || 'ثبت نشده'}</span></p>
                 <p className="text-slate-400">🏢 ناشر بازی: <span className="text-blue-400 font-bold">{game.publishers?.map((p: any) => p.name).join(' ، ') || 'ثبت نشده'}</span></p>
                 
-                {/* 🎮 دکمه استیم با نام درخواستی شما */}
-                {steamUrl && (
+                {/* 🎮 نمایش هوشمند و بدون معطلی دکمه لینک اختصاصی Steam کاملاً محلی از دیتابیس */}
+                {game.steam_url && (
                   <div className="sm:col-span-2 mt-2">
                     <a 
-                      href={steamUrl} 
+                      href={game.steam_url} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white px-5 py-3 rounded-2xl font-bold text-center transition shadow-lg shadow-blue-950/40 text-xs md:text-sm"
@@ -242,11 +206,7 @@ export default function GameDetails() {
             <h3 className="text-lg font-bold mb-4 text-slate-300 border-r-4 border-purple-500 pr-2">📸 گالری تصاویر بازی</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {galleryImages.map((img: any, index: number) => (
-                <div 
-                  key={img.id || img.image} 
-                  onClick={() => setActiveImgIndex(index)}
-                  className="overflow-hidden rounded-xl border border-slate-800 hover:border-purple-500/50 cursor-pointer aspect-video bg-slate-950 transition duration-300"
-                >
+                <div key={img.id || img.image} onClick={() => setActiveImgIndex(index)} className="overflow-hidden rounded-xl border border-slate-800 hover:border-purple-500/50 cursor-pointer aspect-video bg-slate-950 transition duration-300">
                   <img src={getBypassUrl(img.image)} alt="screenshot" className="w-full h-full object-cover" loading="lazy" />
                 </div>
               ))}

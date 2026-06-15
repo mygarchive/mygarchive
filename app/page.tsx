@@ -13,7 +13,6 @@ export default function Home() {
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          // 🌟 مرتب‌سازی حروف الفبایی و عددی (A-Z) به صورت محلی روی لیست بازی‌ها
           const sortedGames = data.sort((a, b) => 
             a.name.localeCompare(b.name, 'en', { numeric: true, sensitivity: 'base' })
           );
@@ -33,7 +32,6 @@ export default function Home() {
     return `https://images.weserv.nl/?url=${encodeURIComponent(cleanUrl)}&w=500&q=80`;
   };
 
-  // فیلتر کردن بازی‌ها بر اساس جستجوی کاربر
   const filteredGames = games.filter(game =>
     game.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -61,12 +59,20 @@ export default function Home() {
           <h1 className="text-4xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-400 mb-4">
             آرشیو بازی‌های پیشرفته
           </h1>
-          <p className="text-slate-400 text-sm md:text-base max-w-md mx-auto">
+          <p className="text-slate-400 text-sm md:text-base max-w-2xl mx-auto mb-6 leading-relaxed">
             مجموعه کامل مشخصات، تریلرها و سیستم مورد نیاز بازی‌های ویدیویی به ترتیب حروف الفبا
           </p>
           
-          {/* باکس جستجو */}
-          <div className="max-w-md mx-auto mt-8">
+          <div className="inline-flex items-center gap-2 bg-purple-950/30 border border-purple-900/40 text-purple-300 px-4 py-1.5 rounded-full text-xs font-semibold backdrop-blur">
+            <span>🎮</span>
+            <span>تعداد بازی‌های موجود:</span>
+            <span className="bg-purple-500 text-white px-2 py-0.5 rounded-md font-bold text-sm">
+              {searchTerm ? filteredGames.length : games.length}
+            </span>
+            {searchTerm && <span className="text-slate-500 text-[11px]">(فیلتر شده)</span>}
+          </div>
+          
+          <div className="max-w-md mx-auto mt-6">
             <input 
               type="text" 
               placeholder="🔍 جستجو در بین بازی‌ها..." 
@@ -117,33 +123,45 @@ export default function Home() {
           <div className="text-center py-12 text-slate-500 text-sm">بازی مورد نظری یافت نشد.</div>
         )}
 
-        {/* 📞 بخش جدید تماس با ما اختصاصی در صفحه اصلی */}
+        {/* 📞 بخش تماس با ما همراه با آیکون اختصاصی و واقعی تلگرام */}
         <section className="mt-20 max-w-md mx-auto bg-slate-900/20 border border-slate-900 rounded-2xl p-6 text-center backdrop-blur-sm">
-          <h4 className="text-base font-bold text-slate-200 mb-2">📞 ارتباط با ما</h4>
+          <h4 className="text-base font-bold text-slate-200 mb-2">ارتباط با ما</h4>
           <p className="text-xs text-slate-500 mb-4">سوال یا پیشنهادی دارید؟ از طریق تلگرام با پشتیبانی در ارتباط باشید.</p>
           <a 
             href="https://t.me/HF273" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-slate-900 border border-slate-800 hover:border-blue-500/40 hover:bg-slate-950 text-slate-300 hover:text-white px-4 py-2.5 rounded-xl text-xs font-bold transition mx-auto"
+            className="inline-flex items-center gap-2 bg-[#1d93d2]/10 border border-[#1d93d2]/30 hover:bg-[#1d93d2]/20 text-[#40b3e7] hover:text-white px-5 py-2.5 rounded-xl text-xs font-bold transition mx-auto"
           >
-            ✈️ پیام در تلگرام (@HF273)
+            {/* آیکون وکتور واقعی تلگرام */}
+            <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 0 0-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .33z"/>
+            </svg>
+            پیام در تلگرام (@HF273)
           </a>
         </section>
       </div>
 
-      {/* 🌟 فوتر استاندارد، وسط‌چین شده به همراه لینک اختصاصی شما */}
+      {/* 🌟 فوتر اختصاصی همراه با لینک ولینک دادن به Gemini */}
       <footer className="w-full border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500 mt-12 z-10 relative">
         <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-center gap-2">
-          <span>قدرت گرفته از هوش مصنوعی</span>
-          <span className="hidden sm:inline text-slate-700">|</span>
+          <span>توسعه داده شده توسط</span>
           <a 
             href="https://t.me/HF273" 
             target="_blank" 
             rel="noopener noreferrer" 
             className="text-purple-400 hover:text-purple-300 font-semibold transition hover:underline"
           >
-            توسعه داده شده توسط Hossein
+            Hossein
+          </a>
+          <span>با همکاری</span>
+          <a 
+            href="https://gemini.google.com" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-blue-400 hover:text-blue-300 font-semibold transition hover:underline"
+          >
+            Gemini
           </a>
         </div>
       </footer>

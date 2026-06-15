@@ -13,11 +13,37 @@ export default function GameDetails() {
   useEffect(() => {
     if (!id) return;
 
-    // اصلاح اسلش انتهایی آدرس برای جلوگیری از ارور روتینگ
+    // ۱. دریافت دیتای ذخیره شده از دیتابیس خودمان
     fetch(`/api-store?id=${id}`)
       .then((res) => res.json())
-      .then((data) => {
-        setGame(data || null);
+      .then(async (localData) => {
+        if (localData) {
+          // ۲. دریافت دیتای زنده برای کامل کردن سازندگان، ناشران و لینک‌های فروشگاهی (مثل استیم)
+          try {
+            const apiKey = '8ceb3ebba03c4ddca51106af23868263';
+            const rawgRes = await fetch(`https://api.rawg.io/api/games/${localData.id}?key=${apiKey}`);
+            if (rawgRes.ok) {
+              const liveData = await rawgRes.json();
+              
+              // ترکیب دیتای لوکال با دیتای زنده و کامل RAWG
+              setGame({
+                ...localData,
+                developers: liveData.developers || localData.developers || [],
+                publishers: liveData.publishers || localData.publishers || [],
+                platforms: liveData.platforms || localData.platforms || [],
+                stores: liveData.stores || localData.stores || [],
+                // اگر تریلر یا ویدیو جدیدی هم در دیتای زنده بود جایگزین شود
+                clip: liveData.clip || localData.clip || null
+              });
+              setLoading(false);
+              return;
+            }
+          } catch (err) {
+            console.error('Error fetching live data from RAWG:', err);
+          }
+          
+          setGame(localData);
+        }
         setLoading(false);
       })
       .catch((err) => {
@@ -77,13 +103,14 @@ export default function GameDetails() {
     return esrb.name;
   };
 
-  const formatRequirements = (reqText: string) => {
-    if (!reqText) return [];
+  const formatRequirements = (reqText: any) => {
+    if (!reqText || typeof reqText !== 'string') return [];
+    
     return reqText
       .replace(/Minimum:|Recommended:/gi, '')
       .split(/(?=Processor:|Graphics:|Memory:|OS:|Storage:|DirectX:|Sound Card:|Network:)/i)
       .map(line => line.trim())
-      .filter(line => line.length > 0);
+      .filter(line => line.length > 2);
   };
 
   if (loading) {
@@ -100,9 +127,34 @@ export default function GameDetails() {
   if (!game) return <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">بازی مورد نظر یافت نشد. <Link href="/" className="text-purple-400 mr-2 hover:underline">بازگشت به خانه</Link></div>;
 
   const pcPlatform = game.platforms?.find((p: any) => p.platform?.name?.toLowerCase() === 'pc' || p.platform?.slug === 'pc');
-  const reqs = pcPlatform?.requirements_en || pcPlatform?.requirements_ru || null;
+  const reqsRaw = pcPlatform?.requirements_en || pcPlatform?.requirements_ru || pcPlatform?.requirements || null;
+
   const galleryImages = game.short_screenshots?.slice(1) || [];
+  
+  // استخراج ویدیو یا کلیپ گیم‌پلی بازی
   const gameVideo = game.clip?.clips?.medium || game.clip?.clip || null;
+
+  // 🌟 استخراج و پیدا کردن لینک مستقیم استیم (Steam) بازی
+  const steamStore = game.stores?.find((s: any) => s.store?.slug === 'steam' || s.store?.name?.toLowerCase() === 'steam');
+  const steamUrl = steamStore?.url || null;
+
+  let finalMinimumLines: string[] = [];
+  let finalRecommendedLines: string[] = [];
+
+  if (reqsRaw) {
+    if (typeof reqsRaw === 'object') {
+      if (reqsRaw.minimum) finalMinimumLines = formatRequirements(reqsRaw.minimum);
+      if (reqsRaw.recommended) finalRecommendedLines = formatRequirements(reqsRaw.recommended);
+    } else if (typeof reqsRaw === 'string') {
+      if (reqsRaw.toLowerCase().includes('recommended:')) {
+        const parts = reqsRaw.split(/recommended:/i);
+        finalMinimumLines = formatRequirements(parts[0]);
+        finalRecommendedLines = formatRequirements(parts[1]);
+      } else {
+        finalMinimumLines = formatRequirements(reqsRaw);
+      }
+    }
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 relative overflow-hidden pb-12" dir="rtl">
@@ -147,6 +199,20 @@ export default function GameDetails() {
                 <p className="text-slate-400">🏢 ناشر بازی: <span className="text-blue-400 font-bold">{game.publishers?.map((p: any) => p.name).join(' ، ') || 'ثبت نشده'}</span></p>
                 <p className="text-slate-400 sm:col-span-2">🛒 فروشگاه‌های رسمی: <span className="text-slate-200 font-medium">{game.stores?.map((s: any) => s.store?.name).join(' ، ') || '---'}</span></p>
                 
+                {/* 🎮 دکمه شیک لینک مستقیم استیم (فقط در صورت وجود لینک) */}
+                {steamUrl && (
+                  <div className="sm:col-span-2 mt-2">
+                    <a 
+                      href={steamUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white px-5 py-3 rounded-2xl font-bold text-center transition shadow-lg shadow-blue-950/40 text-xs md:text-sm"
+                    >
+                      🎮 مشاهده و دریافت بازی از Steam
+                    </a>
+                  </div>
+                )}
+
                 {game.tags && game.tags.length > 0 && (
                   <div className="sm:col-span-2 border-t border-slate-800/50 pt-2 mt-1">
                     <span className="text-slate-500 text-xs block mb-1.5">تگ‌های بازی:</span>
@@ -162,6 +228,7 @@ export default function GameDetails() {
           </div>
         </div>
 
+        {/* بخش نمایش فیلم و تریلر گیم‌پلی بازی */}
         {gameVideo && (
           <section className="mb-8 bg-slate-900/30 border border-slate-900 p-6 rounded-3xl backdrop-blur-sm">
             <h3 className="text-lg font-bold mb-4 text-slate-300 border-r-4 border-purple-500 pr-2">🎬 تریلر رسمی بازی</h3>
@@ -190,23 +257,23 @@ export default function GameDetails() {
 
         <section className="bg-slate-900/30 border border-slate-900 p-6 rounded-3xl backdrop-blur-sm">
           <h3 className="text-lg font-bold mb-4 text-slate-300 border-r-4 border-purple-500 pr-2">🖥️ سیستم مورد نیاز (PC)</h3>
-          {reqs && (reqs.minimum || reqs.recommended) ? (
+          {finalMinimumLines.length > 0 || finalRecommendedLines.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm" dir="ltr">
-              {reqs.minimum && (
+              {finalMinimumLines.length > 0 && (
                 <div className="bg-slate-950/70 p-5 rounded-2xl border border-slate-900 text-left">
                   <h4 className="text-red-400 font-bold text-base mb-3 border-b border-slate-800 pb-1">⚠️ Minimum Requirements</h4>
                   <ul className="space-y-2 text-slate-300 text-xs md:text-sm">
-                    {formatRequirements(reqs.minimum).map((line, i) => (
+                    {finalMinimumLines.map((line, i) => (
                       <li key={i} className="leading-relaxed bg-slate-900/40 p-1.5 rounded border border-slate-900/40">{line}</li>
                     ))}
                   </ul>
                 </div>
               )}
-              {reqs.recommended && (
+              {finalRecommendedLines.length > 0 && (
                 <div className="bg-slate-950/70 p-5 rounded-2xl border border-slate-900 text-left">
                   <h4 className="text-green-400 font-bold text-base mb-3 border-b border-slate-800 pb-1">✅ Recommended Requirements</h4>
                   <ul className="space-y-2 text-slate-300 text-xs md:text-sm">
-                    {formatRequirements(reqs.recommended).map((line, i) => (
+                    {finalRecommendedLines.map((line, i) => (
                       <li key={i} className="leading-relaxed bg-slate-900/40 p-1.5 rounded border border-slate-900/40">{line}</li>
                     ))}
                   </ul>

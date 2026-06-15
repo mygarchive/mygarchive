@@ -51,9 +51,7 @@ export default function AdminPanel() {
     setMessage({ text: '', isError: false });
 
     try {
-      // استفاده از آدرس کاملاً نسبی برای دور زدن ۱۰۰٪ هرگونه آدرس لوکال یا کش قدیمی
       const res = await fetch(`/api-store?search=${encodeURIComponent(searchQuery)}`);
-      
       if (!res.ok) throw new Error('خطا در دریافت اطلاعات از سرور (ارور ۵۰۰ یا لیمیت دیتابیس)');
       
       const data = await res.json();
@@ -122,13 +120,21 @@ export default function AdminPanel() {
     }
   };
 
-  // سیستم بهینه‌سازی و فشرده‌سازی خودکار ابعاد تصاویر بازی
+  // 🌟 پیاده‌سازی دقیق سیستم بای‌پاس فیلترینگ و کاهش سایز خودکار در پنل ادمین
   const getOptimizedImage = (url: string) => {
     if (!url) return '';
+    
+    let processedUrl = url;
+    // ابتدا آدرس را برای سرور RAWG بهینه می‌کنیم تا حجم عکس لود شده به شدت کم شود
     if (url.includes('media/games/')) {
-      return url.replace('media/games/', 'media/resize/420/-/games/');
+      processedUrl = url.replace('media/games/', 'media/resize/420/-/games/');
+    } else if (url.includes('media/screenshots/')) {
+      processedUrl = url.replace('media/screenshots/', 'media/resize/420/-/screenshots/');
     }
-    return url;
+    
+    // پاکسازی پروتکل و ارسال به ورکر بدون فیلتر تصاویر
+    const cleanUrl = processedUrl.replace(/^https?:\/\//i, '');
+    return `https://images.weserv.nl/?url=${encodeURIComponent(cleanUrl)}&w=420&q=80`;
   };
 
   if (!isLoggedIn) {

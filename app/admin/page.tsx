@@ -17,7 +17,6 @@ export default function AdminPanel() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', isError: false });
 
-  // 🔴 نام کاربری و رمز عبور پنل ادمین شما
   const YOUR_USERNAME = 'HF273';
   const YOUR_PASSWORD = 'HF1to1';
 
@@ -72,6 +71,35 @@ export default function AdminPanel() {
     }
 
     try {
+      const apiKey = '8ceb3ebba03c4ddca51106af23868263';
+      let steamUrl = null;
+      let developers = game.developers || [];
+      let publishers = game.publishers || [];
+      let platforms = game.platforms || [];
+      let clip = game.clip || null;
+
+      // دریافت جزئیات تکمیلی زنده فقط در زمان ادمین برای ذخیره یکباره در آپستاش
+      const detailRes = await fetch(`https://api.rawg.io/api/games/${game.id}?key=${apiKey}`);
+      if (detailRes.ok) {
+        const detailData = await detailRes.json();
+        developers = detailData.developers || developers;
+        publishers = detailData.publishers || publishers;
+        platforms = detailData.platforms || platforms;
+        clip = detailData.clip || clip;
+      }
+
+      // استخراج هوشمند لینک استیم در بخش ادمین
+      const storesRes = await fetch(`https://api.rawg.io/api/games/${game.id}/stores?key=${apiKey}`);
+      if (storesRes.ok) {
+        const storesData = await storesRes.json();
+        const steamStore = storesData.results?.find(
+          (s: any) => s.store_id === 1 || s.url?.includes('store.steampowered.com')
+        );
+        if (steamStore?.url) {
+          steamUrl = steamStore.url;
+        }
+      }
+
       const res = await fetch('/api-store', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -82,22 +110,22 @@ export default function AdminPanel() {
           rating: game.rating,
           background_image: game.background_image,
           short_screenshots: game.short_screenshots,
-          platforms: game.platforms, 
+          platforms: platforms, 
           genres: game.genres,
           playtime: game.playtime,
           esrb_rating: game.esrb_rating,
-          developers: game.developers || [], 
-          publishers: game.publishers || [], 
-          stores: game.stores || [],          
+          developers: developers, 
+          publishers: publishers, 
           tags: game.tags || [],              
-          clip: game.clip || null            
+          clip: clip,
+          steam_url: steamUrl // لینک استیم به سلامت وارد کپسول دیتابیس Upstash می‌شود
         }),
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'خطا در ذخیره‌سازی بازی');
 
-      setMessage({ text: `بازی "${game.name}" با موفقیت به دیتابیس اضافه شد.`, isError: false });
+      setMessage({ text: `بازی "${game.name}" با موفقیت به همراه اطلاعات تکمیلی و لینک استیم ذخیره شد.`, isError: false });
       fetchMyGames();
     } catch (err: any) {
       setMessage({ text: err.message, isError: true });
@@ -120,19 +148,14 @@ export default function AdminPanel() {
     }
   };
 
-  // 🌟 پیاده‌سازی دقیق سیستم بای‌پاس فیلترینگ و کاهش سایز خودکار در پنل ادمین
   const getOptimizedImage = (url: string) => {
     if (!url) return '';
-    
     let processedUrl = url;
-    // ابتدا آدرس را برای سرور RAWG بهینه می‌کنیم تا حجم عکس لود شده به شدت کم شود
     if (url.includes('media/games/')) {
       processedUrl = url.replace('media/games/', 'media/resize/420/-/games/');
     } else if (url.includes('media/screenshots/')) {
       processedUrl = url.replace('media/screenshots/', 'media/resize/420/-/screenshots/');
     }
-    
-    // پاکسازی پروتکل و ارسال به ورکر بدون فیلتر تصاویر
     const cleanUrl = processedUrl.replace(/^https?:\/\//i, '');
     return `https://images.weserv.nl/?url=${encodeURIComponent(cleanUrl)}&w=420&q=80`;
   };
@@ -178,7 +201,6 @@ export default function AdminPanel() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12" dir="rtl">
       <div className="max-w-6xl mx-auto">
-        
         <header className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-12 border-b border-slate-900 pb-6">
           <h1 className="text-3xl font-black text-white bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500">
             پنل مدیریت و آرشیو بازی‌ها

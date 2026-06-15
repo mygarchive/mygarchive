@@ -48,21 +48,21 @@ export default function AdminPanel() {
     if (!searchQuery.trim()) return;
     setLoading(true);
     setMessage({ text: '', isError: false });
+    setSearchResults([]); 
 
     try {
       const res = await fetch(`/api-store?search=${encodeURIComponent(searchQuery)}`);
-      if (!res.ok) throw new Error('خطا در دریافت اطلاعات از سرور (ارور ۵۰۰ یا لیمیت دیتابیس)');
+      if (!res.ok) throw new Error('خطا در دریافت اطلاعات از سرور');
       
       const data = await res.json();
       setSearchResults(Array.isArray(data) ? data : []);
     } catch (err: any) {
       setMessage({ text: err.message, isError: true });
     } finally {
-      loading && setLoading(false);
+      setLoading(false);
     }
   };
 
-  // 🚀 اصلاح شده: این متد دیگر مستقیم به RAWG وصل نمی‌شود و فیلترینگ را دور می‌زند
   const handleAddGame = async (game: any) => {
     setMessage({ text: '', isError: false });
     
@@ -72,7 +72,6 @@ export default function AdminPanel() {
     }
 
     try {
-      // فقط ساختار اولیه را به سرور می‌فرستیم، سرور خودش جزییات زنده را از RAWG می‌گیرد.
       const res = await fetch('/api-store', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -93,7 +92,7 @@ export default function AdminPanel() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'خطا در ذخیره‌سازی بازی');
 
-      setMessage({ text: `بازی "${game.name}" با موفقیت (از طریق سرور امن خارج از کشور) به همراه دیتای تکمیلی ذخیره شد.`, isError: false });
+      setMessage({ text: `بازی "${game.name}" با موفقیت اضافه شد.`, isError: false });
       fetchMyGames();
     } catch (err: any) {
       setMessage({ text: err.message, isError: true });
@@ -109,23 +108,19 @@ export default function AdminPanel() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'خطا در حذف بازی');
 
-      setMessage({ text: `بازی "${gameName}" با موفقیت از دیتابیس پاک شد.`, isError: false });
+      setMessage({ text: `بازی "${gameName}" با موفقیت حذف شد.`, isError: false });
       fetchMyGames();
     } catch (err: any) {
       setMessage({ text: err.message, isError: true });
     }
   };
 
-  const getOptimizedImage = (url: string) => {
+  // ✨ متد بهینه‌ساز ۱۰۰٪ قطعی برای باز کردن تصاویر ادمین بدون نیاز به وی‌پی‌ان (همانند فرانت اصلی سایت)
+  const getAdminImage = (url: string) => {
     if (!url) return '';
-    let processedUrl = url;
-    if (url.includes('media/games/')) {
-      processedUrl = url.replace('media/games/', 'media/resize/420/-/games/');
-    } else if (url.includes('media/screenshots/')) {
-      processedUrl = url.replace('media/screenshots/', 'media/resize/420/-/screenshots/');
-    }
-    const cleanUrl = processedUrl.replace(/^https?:\/\//i, '');
-    return `https://images.weserv.nl/?url=${encodeURIComponent(cleanUrl)}&w=420&q=80`;
+    // تمیز کردن و استخراج آدرس اصلی بدون پروتکل برای ارسال به weserv
+    const cleanUrl = url.replace(/^https?:\/\//i, '');
+    return `https://images.weserv.nl/?url=${encodeURIComponent(cleanUrl)}&w=500&q=80&output=jpg`;
   };
 
   if (!isLoggedIn) {
@@ -225,7 +220,13 @@ export default function AdminPanel() {
                   <div key={game.id} className="bg-slate-900/30 border border-slate-900 rounded-3xl overflow-hidden shadow-lg flex flex-col justify-between group hover:border-purple-500/30 transition duration-300 backdrop-blur-sm">
                     <div className="relative aspect-video w-full bg-slate-950 overflow-hidden">
                       {game.background_image ? (
-                        <img src={getOptimizedImage(game.background_image)} alt={game.name} className="object-cover w-full h-full group-hover:scale-105 transition duration-500" loading="lazy" />
+                        <img 
+                          src={getAdminImage(game.background_image)} 
+                          alt={game.name} 
+                          className="object-cover w-full h-full group-hover:scale-105 transition duration-500" 
+                          referrerPolicy="no-referrer"
+                          loading="lazy" 
+                        />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-slate-600 text-xs">بدون تصویر</div>
                       )}

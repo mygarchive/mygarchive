@@ -51,6 +51,16 @@ export default function AdminPanel() {
     } else { setLoginError('نام کاربری یا رمز عبور اشتباه است!'); }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('isAdmin');
+    localStorage.removeItem('gh_token');
+    setIsLoggedIn(false);
+    setGithubToken('');
+    setMyGames([]);
+    setSearchResults([]);
+    setMessage({ text: 'با موفقیت از پنل خارج شدید.', isError: false });
+  };
+
   const fetchMyGames = async (token: string) => {
     try {
       const res = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data/games.json?v=${Date.now()}`, { headers: { 'Authorization': `Bearer ${token}` } });
@@ -83,7 +93,6 @@ export default function AdminPanel() {
       
       const descriptionFa = await translateToPersian((details.description_raw || "").substring(0, 1000));
       
-      // نجات فیلدهای سیستم مورد نیاز مستقل از پلتفرم
       let minReq = 'مشخصات حداقل سخت‌افزار ثبت نشده است.';
       let recReq = 'مشخصات سیستم پیشنهادی ثبت نشده است.';
       
@@ -91,13 +100,11 @@ export default function AdminPanel() {
       if (pcPlatforms?.requirements_minimum) minReq = pcPlatforms.requirements_minimum;
       if (pcPlatforms?.requirements_recommended) recReq = pcPlatforms.requirements_recommended;
 
-      // اگر RAWG فیلد پلتفرمی را پر نکرده بود، از فیلد سراسری خود گیم بخواند
       if (minReq.includes('ثبت نشده') && details.requirements?.minimum) minReq = details.requirements.minimum;
       if (recReq.includes('ثبت نشده') && details.requirements?.recommended) recReq = details.requirements.recommended;
 
       const cleanReq = (t: string) => t.replace(/Minimum:|Recommended:|⚙️/gi, '').replace(/<\/?b>/g, '').replace(/<\/?p>/g, '').trim();
 
-      // تبدیل هوشمند رده سنی متنی به عددی
       let finalAge = '---';
       const rawEsrb = details.esrb_rating?.slug || '';
       if (rawEsrb === 'mature') finalAge = '+17';
@@ -106,16 +113,12 @@ export default function AdminPanel() {
       else if (rawEsrb === 'everyone-10-plus') finalAge = '+10';
       else if (rawEsrb === 'everyone') finalAge = 'همه سنین';
 
-      // استخراج هوشمند لینک مستقیم استیم بر اساس ID بازی در فروشگاه استیم
       let steamUrl = '';
       const steamStore = details.stores?.find((s: any) => s.store.slug === 'steam');
       if (steamStore && steamStore.url) {
-        const match = steamStore.url.match(/\/app\/(\hot\d+)/ || /\/app\/(\d+)/);
-        if (match && match[1]) {
-          steamUrl = `https://store.steampowered.com/app/${match[1]}`;
-        } else {
-          steamUrl = steamStore.url;
-        }
+        const match = steamStore.url.match(/\/app\/(\d+)/);
+        if (match && match[1]) steamUrl = `https://store.steampowered.com/app/${match[1]}`;
+        else steamUrl = steamStore.url;
       }
 
       const newGameObj = {
@@ -131,10 +134,7 @@ export default function AdminPanel() {
         steam_link: steamUrl,
         trailer_url: movieData.results?.[0]?.data?.max || '',
         gallery: screenshots.results?.map((s: any) => s.image) || [],
-        requirements: {
-          minimum: cleanReq(minReq),
-          recommended: cleanReq(recReq)
-        },
+        requirements: { minimum: cleanReq(minReq), recommended: cleanReq(recReq) },
         description_en: details.description_raw || "No description available.",
         description_fa: descriptionFa 
       };
@@ -202,9 +202,11 @@ export default function AdminPanel() {
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12" dir="rtl">
       <div className="max-w-5xl mx-auto">
         <header className="flex justify-between items-center mb-8 border-b border-slate-900 pb-4">
-          <h1 className="text-lg font-black text-white">🎮 کنترل پنل هوشمند آرشیو</h1>
           <div className="flex items-center gap-4">
-            <a href="https://t.me/HF273" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 bg-blue-950/40 border border-blue-900/60 px-3 py-1.5 rounded-xl">✈️ پشتیبانی تلگرام: HF273</a>
+            <h1 className="text-lg font-black text-white">🎮 کنترل پنل هوشمند آرشیو</h1>
+            <button onClick={handleLogout} className="text-xs bg-red-950/40 border border-red-900/60 hover:bg-red-900 text-red-400 hover:text-white px-3 py-1.5 rounded-xl transition font-bold">🚪 خروج از پنل</button>
+          </div>
+          <div className="flex items-center gap-4">
             <Link href="/" className="text-xs text-purple-400 bg-purple-950/40 border border-purple-900/60 px-4 py-2 rounded-xl">➔ نمایش صفحه اصلی سایت</Link>
           </div>
         </header>

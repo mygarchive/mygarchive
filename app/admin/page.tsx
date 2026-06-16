@@ -75,9 +75,7 @@ export default function AdminPanel() {
 
   const fetchMyGames = async (token: string, isInitialLogin = false) => {
     try {
-      const res = await fetch(`https://raw.githubusercontent.com/mygarchive/mygarchive.github.io/main/data/games.json?v=${Date.now()}`, {
-        headers: { 'Authorization': `token ${token}` }
-      });
+      const res = await fetch(`https://raw.githubusercontent.com/mygarchive/mygarchive.github.io/main/data/games.json?v=${Date.now()}`);
       if (res.status === 200) {
         const data = await res.json();
         setFileSha(data.sha);
@@ -94,7 +92,6 @@ export default function AdminPanel() {
     if (!searchQuery) return;
     setLoading(true);
     try {
-      // تعداد نتایج توسعه یافته جهت اسکرول و خوانایی عالی
       const res = await fetch(`https://api.rawg.io/api/games?key=${RAWG_API_KEY}&search=${searchQuery}&page_size=24`);
       const data = await res.json();
       setSearchResults(data.results || []);
@@ -123,7 +120,6 @@ export default function AdminPanel() {
       const rawDescriptionEn = gameDetails.description_raw || "No description available.";
       const descriptionFa = await translateToPersian(rawDescriptionEn.substring(0, 1000));
 
-      // تفکیک مرتب فیلدهای سیستم مورد نیاز
       const pcRequirements = gameDetails.platforms?.find((p: any) => p.platform.slug === 'pc')?.requirements_minimum || '';
       const requirementsObj = pcRequirements 
         ? { minimum: pcRequirements.replace(/Minimum:|⚙️/gi, '').trim() }
@@ -177,7 +173,7 @@ export default function AdminPanel() {
     const updatedGames = myGames.filter((g) => g.id !== gameId);
 
     try {
-      const res = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data/games.json`, {
+      const res = await fetch(`https://raw.githubusercontent.com/mygarchive/mygarchive.github.io/main/data/games.json`, {
         method: 'PUT',
         headers: { 'Authorization': `token ${githubToken}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -199,21 +195,6 @@ export default function AdminPanel() {
     setLoading(false);
   };
 
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4" dir="rtl">
-        <form onSubmit={handleLogin} className="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-md space-y-4">
-          <h2 className="text-lg font-black text-center text-white mb-2">⚙️ ورود مدیریت</h2>
-          <input type="text" placeholder="نام کاربری" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-left outline-none" required />
-          <input type="password" placeholder="رمز عبور" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-left outline-none" required />
-          <input type="password" placeholder="GitHub Classic Token (ghp_...)" value={githubToken} onChange={(e) => setGithubToken(e.target.value)} className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm text-left outline-none" required />
-          {loginError && <p className="text-xs text-red-400 font-bold text-center">{loginError}</p>}
-          <button type="submit" className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 font-bold rounded-xl text-sm text-white">اتصال</button>
-        </form>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12" dir="rtl">
       <div className="max-w-5xl mx-auto">
@@ -223,7 +204,7 @@ export default function AdminPanel() {
         </header>
 
         <div className="bg-slate-900/50 border border-slate-900 p-4 rounded-xl mb-6 flex gap-2">
-          <input type="text" value={searchQuery} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="نام بازی (مثال: Cyberpunk)..." className="flex-1 p-3 bg-slate-950 border border-slate-800 rounded-xl text-sm outline-none text-left" dir="ltr" />
+          <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="نام بازی (مثال: Cyberpunk)..." className="flex-1 p-3 bg-slate-950 border border-slate-800 rounded-xl text-sm outline-none text-left" dir="ltr" />
           <button onClick={handleSearch} className="px-6 bg-purple-600 hover:bg-purple-700 rounded-xl text-sm font-bold">جستجو</button>
         </div>
 
@@ -234,6 +215,7 @@ export default function AdminPanel() {
             const isAlreadyAdded = myGames.some((g) => g.id === game.id);
             return (
               <div key={game.id} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden flex flex-col justify-between shadow-lg">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={getOptimizedUrl(game.background_image, 400)} alt={game.name} className="w-full h-40 object-cover" />
                 <div className="p-4 flex flex-col justify-between flex-1 space-y-4">
                   <h3 className="font-bold text-sm text-white text-left truncate" dir="ltr">{game.name}</h3>

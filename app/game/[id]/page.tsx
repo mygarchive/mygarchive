@@ -4,6 +4,14 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 
+// این خط به نکست‌جی‌اس می‌گوید که اگر آی‌دی بازی از قبل بیلد نشده بود، ارور ندهد
+export const dynamicParams = true;
+
+// این تابع خالی به نکست‌جی‌اس می‌گوید در زمان بیلد اولیه نیازی نیست صفحه‌ای از قبل ساخته شود
+export async function generateStaticParams() {
+  return [];
+}
+
 export default function GameDetails() {
   const { id } = useParams();
   const [game, setGame] = useState<any>(null);
@@ -19,7 +27,7 @@ export default function GameDetails() {
           const foundGame = gamesList.find((g: any) => g.id.toString() === id.toString());
           setGame(foundGame || null);
         }
-        setLoading(false)
+        setLoading(false);
       })
       .catch((err) => {
         console.error('خطا در دریافت جزئیات بازی:', err);

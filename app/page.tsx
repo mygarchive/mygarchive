@@ -95,8 +95,20 @@ export default function Home() {
           )}
         </main>
 
+        {/* 🛠️ فوتر جدید همراه با لینک تماس تلگرام و دیتای توسعه‌دهنده */}
         <footer className="mt-20 pt-6 border-t border-slate-900 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-500">
-          <p>تمامی حقوق برای آرشیو بازی‌ها محفوظ است © ۲۰۲۶</p>
+          <div className="flex items-center gap-4">
+            <p>تمامی حقوق برای آرشیو بازی‌ها محفوظ است © ۲۰۲۶</p>
+            <span className="text-slate-800 hidden sm:inline">|</span>
+            <a 
+              href="https://t.me/HF273" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="inline-flex items-center gap-1 text-sky-400 hover:text-sky-300 font-bold bg-sky-500/5 border border-sky-500/10 px-2.5 py-1 rounded-lg transition"
+            >
+              ✈️ تماس با من در تلگرام
+            </a>
+          </div>
           <p className="flex items-center gap-1">
             قدرت‌گرفته و توسعه‌یافته با 💜 توسط 
             <a 

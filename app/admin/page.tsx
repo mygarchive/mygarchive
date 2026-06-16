@@ -3,14 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-// 🗄️ تنظیمات اختصاصی دیتابیس Upstash شما
-const UPSTASH_URL = "https://enjoyed-moccasin-119717.upstash.io";
-const UPSTASH_TOKEN = "gQAAAAAAAdOlAAIgcDI2ZWUzZWNhNzYwNzc0NDA1YjUyYjBmZDY0OTkxMDYzYQ";
-
-// 🔑 کلید اختصاصی اکانت RAWG شما برای جستجوی بازی‌ها
-const RAWG_API_KEY = "8ceb3ebba03c4ddca51106af23868263";
-
-// 🔒 تابع استاندارد برای هش کردن پسورد تایپ شده توسط کاربر با الگوریتم SHA-256
 async function hashPassword(string: string) {
   const utf8 = new TextEncoder().encode(string);
   const hashBuffer = await crypto.subtle.digest('SHA-256', utf8);
@@ -19,20 +11,17 @@ async function hashPassword(string: string) {
 }
 
 export default function AdminPanel() {
-  // --- بخش امنیت و ورود ---
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loginError, setLoginError] = useState('');
 
-  // --- بخش مدیریت بازی‌ها ---
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [myGames, setMyGames] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', isError: false });
 
-  // بررسی وضعیت لاگین قبلی از طریق LocalStorage (برای جلوگیری از خروج با رفرش صفحه)
   useEffect(() => {
     const adminStatus = localStorage.getItem('isAdmin');
     if (adminStatus === 'true') {
@@ -41,14 +30,10 @@ export default function AdminPanel() {
     }
   }, []);
 
-  // هندلر دکمه ورود ادمین
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // هش کردن پسوردی که کاربر همین الان در کادر تایپ کرده
     const userTypedHash = await hashPassword(password);
 
-    // مقایسه نام کاربری و هش ۶۴ کاراکتری پسورد شما بدون لو رفتن رمز اصلی
     if (username === 'HF273' && userTypedHash === '95ed82328afcc54d826006515d6334f77dab3fe2d2bec5b85fa9503ac19c502a') {
       setIsLoggedIn(true);
       setLoginError('');
@@ -59,29 +44,23 @@ export default function AdminPanel() {
     }
   };
 
-  // هندلر خروج از پنل
   const handleLogout = () => {
     setIsLoggedIn(false);
     localStorage.removeItem('isAdmin');
   };
 
-  // دریافت لیست بازی‌های ذخیره شده مستقیماً از Upstash
   const fetchMyGames = async () => {
     try {
-      const res = await fetch(`${UPSTASH_URL}/get/games`, {
-        headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` }
-      });
+      const res = await fetch('/api-store');
       if (res.ok) {
         const data = await res.json();
-        // داده‌ها در Upstash به صورت رشته ذخیره می‌شوند و اینجا پارس می‌شوند
-        setMyGames(data.result ? JSON.parse(data.result) : []);
+        setMyGames(Array.isArray(data) ? data : []);
       }
     } catch (err) {
-      console.error('خطا در دریافت لیست بازی‌ها از Upstash', err);
+      console.error('خطا در دریافت لیست بازی‌ها:', err);
     }
   };
 
-  // جستجوی بازی از سرویس RAWG مستقیماً در فرانت‌بند
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
@@ -90,11 +69,11 @@ export default function AdminPanel() {
     setSearchResults([]); 
 
     try {
-      const res = await fetch(`https://api.rawg.io/api/games?key=${RAWG_API_KEY}&search=${encodeURIComponent(searchQuery)}`);
-      if (!res.ok) throw new Error('خطا در دریافت اطلاعات از RAWG');
+      const res = await fetch(`/api-store?search=${encodeURIComponent(searchQuery)}`);
+      if (!res.ok) throw new Error('خطا در دریافت اطلاعات از سرور جانبی');
       
       const data = await res.json();
-      setSearchResults(Array.isArray(data.results) ? data.results : []);
+      setSearchResults(Array.isArray(data) ? data : []);
     } catch (err: any) {
       setMessage({ text: err.message, isError: true });
     } finally {
@@ -102,7 +81,6 @@ export default function AdminPanel() {
     }
   };
 
-  // اضافه کردن بازی جدید به آرشیو Upstash
   const handleAddGame = async (game: any) => {
     setMessage({ text: '', isError: false });
     
@@ -111,67 +89,47 @@ export default function AdminPanel() {
       return;
     }
 
-    const updatedGames = [...myGames, {
-      id: game.id,
-      name: game.name,
-      released: game.released,
-      rating: game.rating,
-      background_image: game.background_image,
-      short_screenshots: game.short_screenshots,
-      genres: game.genres,
-      playtime: game.playtime,
-      esrb_rating: game.esrb_rating,
-      tags: game.tags || []
-    }];
+    setLoading(true);
 
     try {
-      // کل آرایه آپدیت شده بازی‌ها را یک‌جا به شکل رشته در دیتابیس ست می‌کنیم
-      const res = await fetch(`${UPSTASH_URL}/set/games`, {
+      const res = await fetch('/api-store', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` },
-        body: JSON.stringify(JSON.stringify(updatedGames))
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(game)
       });
 
-      if (!res.ok) throw new Error('خطا در ذخیره‌سازی روی دیتابیس');
+      if (!res.ok) throw new Error('خطا در پردازش و ذخیره‌سازی اطلاعات روی دیتابیس');
 
-      setMessage({ text: `بازی "${game.name}" با موفقیت اضافه شد.`, isError: false });
-      setMyGames(updatedGames);
+      setMessage({ text: `بازی "${game.name}" با موفقیت به دیتابیس اضافه شد.`, isError: false });
+      fetchMyGames(); 
     } catch (err: any) {
       setMessage({ text: err.message, isError: true });
+    } finally {
+      setLoading(false);
     }
   };
 
-  // حذف بازی از آرشیو Upstash
   const handleDeleteGame = async (gameId: number, gameName: string) => {
     if (!confirm(`آیا از حذف بازی "${gameName}" مطمئن هستید؟`)) return;
     setMessage({ text: '', isError: false });
 
-    const updatedGames = myGames.filter((g) => g.id.toString() !== gameId.toString());
-
     try {
-      const res = await fetch(`${UPSTASH_URL}/set/games`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` },
-        body: JSON.stringify(JSON.stringify(updatedGames))
-      });
-
+      const res = await fetch(`/api-store?id=${gameId}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('خطا در حذف بازی از دیتابیس');
 
       setMessage({ text: `بازی "${gameName}" با موفقیت حذف شد.`, isError: false });
-      setMyGames(updatedGames);
+      setMyGames(myGames.filter((g) => g.id.toString() !== gameId.toString()));
     } catch (err: any) {
       setMessage({ text: err.message, isError: true });
     }
   };
 
-  // تونل تصویر برای باز شدن عکس‌ها بدون تحریم و نیاز به وی‌پی‌ان
   const getAdminImage = (url: string) => {
     if (!url) return '';
     const cleanUrl = url.replace(/^https?:\/\//i, '');
     return `https://images.weserv.nl/?url=${encodeURIComponent(cleanUrl)}&w=500&q=80&output=jpg`;
   };
 
-  // --- پوسته گرافیکی صفحه ورود (در صورت لاگین نبودن) ---
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-4" dir="rtl">
@@ -210,7 +168,6 @@ export default function AdminPanel() {
     );
   }
 
-  // --- پوسته گرافیکی پنل اصلی مدیریت بازی‌ها (بعد از لاگین موفق) ---
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12" dir="rtl">
       <div className="max-w-6xl mx-auto">

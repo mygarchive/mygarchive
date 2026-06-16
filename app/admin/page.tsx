@@ -20,6 +20,20 @@ async function translateToPersian(text: string): Promise<string> {
   }
 }
 
+// 🔐 تابع استاندارد و ایمن برای انکود UTF-8 به Base64 بدون خرابی کاراکترهای فارسی
+function safeBtoa(str: string): string {
+  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => {
+    return String.fromCharCode(parseInt(p1, 16));
+  }));
+}
+
+// 🔓 تابع استاندارد برای دکود مطمئن Base64 به متون فارسی
+function safeAtob(str: string): string {
+  return decodeURIComponent(atob(str).split('').map((c) => {
+    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(''));
+}
+
 export default function AdminPanel() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -34,7 +48,7 @@ export default function AdminPanel() {
   const [message, setMessage] = useState({ text: '', isError: false });
   const [fileSha, setFileSha] = useState('');
 
-  // 🖼️ تابع بهینه‌سازی سایز عکس و دور زدن فیلترینگ ایران
+  // 🖼️ تابع بهینه‌سازی سایز عکس و دور زدن فیلترینگ ایران در ادمین
   const getOptimizedUrl = (url: string, width = 400) => {
     if (!url) return '';
     const cleanUrl = url.replace(/^https?:\/\//i, '');
@@ -79,7 +93,6 @@ export default function AdminPanel() {
 
   const fetchMyGames = async (token: string, isInitialLogin = false) => {
     try {
-      // استفاده از ترفند کش‌بریکست (?v=) برای گرفتن آخرین تغییرات دیتابیس
       const res = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data/games.json?v=${Date.now()}`, {
         headers: { 'Authorization': `token ${token}` }
       });
@@ -87,7 +100,7 @@ export default function AdminPanel() {
       if (res.status === 200) {
         const data = await res.json();
         setFileSha(data.sha);
-        const content = JSON.parse(atob(data.content));
+        const content = JSON.parse(safeAtob(data.content));
         setMyGames(Array.isArray(content) ? content : []);
         setIsLoggedIn(true);
       } else if (res.status === 401 || res.status === 403) {
@@ -107,7 +120,6 @@ export default function AdminPanel() {
     if (!searchQuery) return;
     setLoading(true);
     try {
-      // 🚀 افزایش تعداد نتایج به 20 برای لود کردن تمام نسخه‌های بازی‌ها
       const res = await fetch(`https://api.rawg.io/api/games?key=${RAWG_API_KEY}&search=${searchQuery}&page_size=20`);
       const data = await res.json();
       setSearchResults(data.results || []);
@@ -129,16 +141,18 @@ export default function AdminPanel() {
       const shortDescriptionEn = rawDescriptionEn.length > 1000 ? rawDescriptionEn.substring(0, 1000) + '...' : rawDescriptionEn;
       const descriptionFa = await translateToPersian(shortDescriptionEn);
 
-      const updatedGames = [...myGames, {
+      const newGameObj = {
         id: game.id,
         name: game.name,
-        background_image: game.background_image, // آدرس خام برای ذخیره در دیتابیس
+        background_image: game.background_image,
         rating: game.rating,
         released: game.released,
-        genres: game.genres,
+        genres: game.genres || [],
         description_en: shortDescriptionEn,
         description_fa: descriptionFa 
-      }];
+      };
+
+      const updatedGames = [...myGames, newGameObj];
 
       const res = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data/games.json`, {
         method: 'PUT',
@@ -147,15 +161,17 @@ export default function AdminPanel() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: `Add ${game.name} with dual-language description`,
-          content: btoa(unescape(encodeURIComponent(JSON.stringify(updatedGames, null, 2)))),
+          message: `Add ${game.name} with fixed UTF-8 description`,
+          content: safeBtoa(JSON.stringify(updatedGames, null, 2)),
           sha: fileSha
         })
       });
 
       if (res.status === 200 || res.status === 201) {
-        setMessage({ text: `بازی "${game.name}" با موفقیت به آرشیو اضافه شد! صفحه تا ۳ ثانیه دیگر رفرش می‌شود.`, isError: false });
-        setTimeout(() => window.location.reload(), 3000);
+        const resData = await res.json();
+        setFileSha(resData.content.sha); // آپدیت کردن SHA بدون نیاز به رفرش کل صفحه
+        setMyGames(updatedGames); // آپدیت آنی دیتای ادمین برای تغییر سریع وضعیت دکمه‌ها
+        setMessage({ text: `بازی "${game.name}" با موفقیت اضافه شد و در ثانیه روی سایت اصلی اعمال گردید!`, isError: false });
       } else {
         setMessage({ text: 'خطا در ذخیره روی گیت‌هاب.', isError: true });
       }
@@ -165,10 +181,10 @@ export default function AdminPanel() {
     setLoading(false);
   };
 
-  // ❌ تابع هوشمند حذف بازی از آرشیو
   const handleRemoveGame = async (gameId: number, gameName: string) => {
     if (!window.confirm(`آیا از حذف بازی "${gameName}" مطمئن هستید؟`)) return;
     setLoading(true);
+    setMessage({ text: 'در حال حذف بازی از روی دیتابیس...', isError: false });
     
     const updatedGames = myGames.filter((g) => g.id !== gameId);
 
@@ -181,14 +197,16 @@ export default function AdminPanel() {
         },
         body: JSON.stringify({
           message: `Remove ${gameName} from archive`,
-          content: btoa(unescape(encodeURIComponent(JSON.stringify(updatedGames, null, 2)))),
+          content: safeBtoa(JSON.stringify(updatedGames, null, 2)),
           sha: fileSha
         })
       });
 
       if (res.status === 200 || res.status === 201) {
-        setMessage({ text: `بازی "${gameName}" با موفقیت از آرشیو حذف شد! صفحه تا ۳ ثانیه دیگر رفرش می‌شود.`, isError: false });
-        setTimeout(() => window.location.reload(), 3000);
+        const resData = await res.json();
+        setFileSha(resData.content.sha);
+        setMyGames(updatedGames); // تغییر وضعیت آنی دکمه بدون رفرش صفحه ادمین
+        setMessage({ text: `بازی "${gameName}" با موفقیت حذف شد!`, isError: false });
       } else {
         setMessage({ text: 'خطا در حذف بازی از روی گیت‌هاب.', isError: true });
       }
@@ -229,7 +247,6 @@ export default function AdminPanel() {
         <header className="flex justify-between items-center mb-8 border-b border-slate-900 pb-4">
           <h1 className="text-xl font-black text-white">🎮 پنل مدیریت و افزودن بازی</h1>
           <div className="flex items-center gap-4">
-            {/* ➔ مورد دوم: دکمه بازگشت به صفحه اصلی سایت */}
             <Link href="/" className="text-xs text-purple-400 bg-purple-950/40 border border-purple-900/60 px-3 py-1.5 rounded-xl hover:bg-purple-600 hover:text-white transition">➔ مشاهده سایت اصلی</Link>
             <button onClick={() => { localStorage.clear(); setIsLoggedIn(false); }} className="text-xs text-red-400 hover:underline">خروج</button>
           </div>
@@ -248,13 +265,11 @@ export default function AdminPanel() {
 
         {loading && <div className="text-center py-6 text-sm text-slate-400 animate-pulse">در حال پردازش داده‌ها...</div>}
 
-        {/* ⚡ تغییر استایل به کارت‌های بزرگ‌تر و شیک‌تر */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {searchResults.map((game) => {
             const isAlreadyAdded = myGames.some((g) => g.id === game.id);
             return (
               <div key={game.id} className="bg-slate-900 border border-slate-800/80 rounded-2xl overflow-hidden flex flex-col justify-between group shadow-lg hover:border-slate-700 transition">
-                {/* 🖼️ استفاده از تصویر کم‌حجم، سریع و ضدتحریم ایران */}
                 <img src={getOptimizedUrl(game.background_image, 500)} alt={game.name} className="w-full h-44 object-cover bg-slate-950 transition group-hover:scale-105 duration-300" />
                 <div className="p-4 flex-1 flex flex-col justify-between space-y-4">
                   <div>
@@ -262,13 +277,12 @@ export default function AdminPanel() {
                     <p className="text-xs text-slate-500">انتشار: {game.released || '---'}</p>
                   </div>
                   
-                  {/* ❌ مورد پنجم: دکمه داینامیک افزودن یا حذف هوشمند */}
                   {isAlreadyAdded ? (
                     <button onClick={() => handleRemoveGame(game.id, game.name)} className="w-full py-2 bg-red-950/40 hover:bg-red-600 border border-red-900 hover:border-red-500 text-red-400 hover:text-white rounded-xl text-xs transition font-black">
                       ❌ حذف از آرشیو شما
                     </button>
                   ) : (
-                    <button onClick={() => handleAddGame(game)} className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs transition font-black">
+                    <button onClick={() => handleAddGame(game)} disabled={loading} className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs transition font-black disabled:opacity-50">
                       ＋ افزودن به آرشیو
                     </button>
                   )}

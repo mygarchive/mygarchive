@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 function GameDetailsContent() {

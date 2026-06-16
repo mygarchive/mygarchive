@@ -95,9 +95,7 @@ export default function Home() {
             <a href="https://t.me/HF273" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 bg-blue-950/40 border border-blue-900/60 px-4 py-2 rounded-xl transition hover:bg-blue-900/30">
               ✈️ کانال تلگرام: HF273
             </a>
-            <Link href="/admin" className="text-xs text-slate-400 bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl transition hover:bg-slate-800">
-              🔒 ورود به مدیریت
-            </Link>
+            {/* دکمه مدیریت طبق درخواست شما از این قسمت حذف شد */}
           </div>
         </header>
 

@@ -190,5 +190,41 @@
     },
     "description_en": "No description available.",
     "description_fa": "هیچ توضیحی در دسترس نیست."
+  },
+  {
+    "id": 983374,
+    "name": "Mixtape (2025)",
+    "background_image": "https://media.rawg.io/media/screenshots/2e1/2e1a19d938c0e7a4a396924125923c38.jpg",
+    "rating": 0,
+    "released": "2026-05-07",
+    "genres": [
+      {
+        "id": 51,
+        "name": "Indie",
+        "slug": "indie"
+      },
+      {
+        "id": 3,
+        "name": "Adventure",
+        "slug": "adventure"
+      }
+    ],
+    "esrb_rating": "Rating Pending+",
+    "playtime": 0,
+    "developers": "Beethoven and Dinosaur",
+    "steam_link": "https://store.steampowered.com/app/983374",
+    "trailer_url": "",
+    "gallery": [
+      "https://media.rawg.io/media/screenshots/274/27489e9d2eeb610210bb3cbd54128235.jpg",
+      "https://media.rawg.io/media/screenshots/be2/be2d57e6ac10871ba5dd7efe6a51abd6.jpg",
+      "https://media.rawg.io/media/screenshots/5fb/5fbd580868b81f3e98df98292a5c8659.jpg",
+      "https://media.rawg.io/media/screenshots/2e1/2e1a19d938c0e7a4a396924125923c38.jpg"
+    ],
+    "requirements": {
+      "minimum": "مشخصات حداقل سخت‌افزار ثبت نشده است.",
+      "recommended": "مشخصات سیستم پیشنهادی ثبت نشده است."
+    },
+    "description_en": "On their last night of high school, three friends embark on one more adventure together. Play through a mixtape of memories, set to the soundtrack of a generation.\n\nFeaturing music from DEVO, Roxy Music, Lush, The Smashing Pumpkins, Iggy Pop, Siouxsie and the Banshees, Joy Division, and many more.\n\nSkate. Party. Avoid the law.\n\nMake out. Sneak out. Hang out.",
+    "description_fa": "در آخرین شب دبیرستان، سه دوست با هم وارد یک ماجراجویی دیگر می شوند. با ترکیبی از خاطرات، با موسیقی متن یک نسل پخش کنید.\n\nدارای موسیقی از DEVO، Roxy Music، Lush، The Smashing Pumpkins، Iggy Pop، Siouxsie and the Banshees، Joy Division و بسیاری دیگر.\n\nاسکیت. مهمانی از قانون دوری کنید.\n\nدرست کردن. یواشکی بیرون. پاتوق کن"
   }
 ]

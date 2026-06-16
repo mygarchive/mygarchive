@@ -8,8 +8,8 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // خواندن مستقیم از فایل محلی پروژه
-    fetch('/data/games.json', { 'cache': 'no-store' })
+    // 🛠️ اضافه کردن پارامتر زمان زمان حال (?v= timestamp) برای دور زدن ۱۰۰٪ کش گیت‌هاب و سرور
+    fetch(`/data/games.json?v=${Date.now()}`, { cache: 'no-store' })
       .then((res) => res.json())
       .then((data) => {
         setGames(Array.isArray(data) ? data : []);
@@ -21,10 +21,12 @@ export default function Home() {
       });
   }, []);
 
+  // 🖼️ بهینه‌سازی سایز عکس‌ها برای صفحه اصلی (سایز کوچک، فشرده و ضدتحریم ایران)
   const getBypassUrl = (url: string) => {
     if (!url) return '';
     const cleanUrl = url.replace(/^https?:\/\//i, '');
-    return `https://images.weserv.nl/?url=${encodeURIComponent(cleanUrl)}&w=500&q=80&output=jpg`;
+    // سایز تصویر را روی ۴۰۰ پیکسل ست کردم تا هم حجم کم شود و هم کیفیت روی مانیتورها عالی باشد
+    return `https://images.weserv.nl/?url=${encodeURIComponent(cleanUrl)}&w=400&q=80&output=jpg`;
   };
 
   if (loading) {
@@ -40,22 +42,28 @@ export default function Home() {
       <div className="max-w-6xl mx-auto">
         <header className="flex justify-between items-center mb-12 border-b border-slate-900 pb-6">
           <h1 className="text-2xl md:text-3xl font-black text-white">🎮 آرشیو شخصی بازی‌های من</h1>
-          {/* دکمه ورود به پنل از اینجا حذف شد */}
         </header>
 
         {games.length === 0 ? (
-          /* متن راهنمای ادمین حذف شد و فقط یک فضای خالی شیک یا پیغام ساده قرار گرفت */
           <p className="text-center text-slate-600 py-12">آرشیو بازی‌ها در حال حاضر خالی است.</p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {games.map((game) => (
-              /* آدرس لینک در خط پایین کاملاً بر اساس متد جدید به /game?id= اصلاح شد */
-              <Link href={`/game?id=${game.id}`} key={game.id} className="bg-slate-900/40 border border-slate-900/80 rounded-2xl overflow-hidden hover:border-purple-500/40 transition duration-300 flex flex-col justify-between group">
+              <Link 
+                href={`/game?id=${game.id}`} 
+                key={game.id} 
+                className="bg-slate-900/40 border border-slate-900/80 rounded-2xl overflow-hidden hover:border-purple-500/40 transition duration-300 flex flex-col justify-between group"
+              >
                 <div className="aspect-video w-full overflow-hidden bg-slate-950">
-                  <img src={getBypassUrl(game.background_image)} alt={game.name} className="object-cover w-full h-full group-hover:scale-105 transition duration-500" />
+                  <img 
+                    src={getBypassUrl(game.background_image)} 
+                    alt={game.name} 
+                    className="object-cover w-full h-full group-hover:scale-105 transition duration-500" 
+                    loading="lazy" // بهینه‌سازی لود تدریجی تصاویر مرورگر
+                  />
                 </div>
                 <div className="p-4">
-                  <h3 className="font-bold text-white text-sm line-clamp-1 mb-1">{game.name}</h3>
+                  <h3 className="font-bold text-white text-sm line-clamp-1 mb-1 text-right" dir="ltr">{game.name}</h3>
                   <p className="text-xs text-slate-500">امتیاز: ★ {game.rating?.toFixed(1) || '0'}</p>
                 </div>
               </Link>

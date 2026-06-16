@@ -14,6 +14,19 @@ async function hashPassword(string: string) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// 🌐 تابع کمکی برای ترجمه خودکار متن به فارسی
+async function translateToPersian(text: string): Promise<string> {
+  try {
+    const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=fa&dt=t&q=${encodeURIComponent(text)}`);
+    if (!res.ok) return 'ترجمه خودکار با خطا مواجه شد.';
+    const data = await res.json();
+    return data[0].map((item: any) => item[0]).join('');
+  } catch (err) {
+    console.error('خطا در ترجمه:', err);
+    return 'خطا در ارتباط با سرور ترجمه.';
+  }
+}
+
 export default function AdminPanel() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -29,6 +42,12 @@ export default function AdminPanel() {
   const [fileSha, setFileSha] = useState('');
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.pathname.includes('/app/')) {
+      const cleanPath = window.location.pathname.replace('/app/', '/');
+      window.location.replace(window.location.origin + cleanPath);
+      return;
+    }
+
     const adminStatus = localStorage.getItem('isAdmin');
     const savedToken = localStorage.getItem('gh_token');
     if (adminStatus === 'true' && savedToken) {
@@ -41,14 +60,11 @@ export default function AdminPanel() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // تبدیل خودکار پسورد ورودی به حروف کوچک برای حذف حساسیت به حروف بزرگ/کوچک
     const cleanPassword = password.trim().toLowerCase();
     const hashedInputPassword = await hashPassword(cleanPassword);
     
-    // 🔐 هش امن شده و غیرقابل حدس
     const targetHash = 'c094ff54fddbc8fbff809b4009fbd6c66cf6ccfdf1e15fa52787c805ba2a95f7';
 
-    // حذف حساسیت به حروف بزرگ و کوچک در نام کاربری
     if (username.trim().toLowerCase() === 'hf273' && hashedInputPassword === targetHash) {
       if (!githubToken.trim().startsWith('ghp_')) {
         setLoginError('لطفاً توکن کلاسیک گیت‌هاب که با ghp_ شروع می‌شود را درست وارد کنید.');
@@ -66,6 +82,7 @@ export default function AdminPanel() {
 
   const fetchMyGames = async (token: string) => {
     try {
+      // 🛠️ آدرس‌دهی مستقیم به پوشه data طبق ساختار پروژه شما
       const res = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data/games.json`, {
         headers: { 'Authorization': `token ${token}` }
       });
@@ -100,16 +117,34 @@ export default function AdminPanel() {
     }
     
     setLoading(true);
-    const updatedGames = [...myGames, {
-      id: game.id,
-      name: game.name,
-      background_image: game.background_image,
-      rating: game.rating,
-      released: game.released,
-      genres: game.genres
-    }];
+    setMessage({ text: 'در حال دریافت اطلاعات تکمیلی و ترجمه خودکار توضیحات...', isError: false });
 
     try {
+      // ۱. دریافت دیتای اختصاصی بازی (شامل توضیحات کامل انگلیسی) از RAWG
+      const gameDetailsRes = await fetch(`https://api.rawg.io/api/games/${game.id}?key=${RAWG_API_KEY}`);
+      const gameDetails = await gameDetailsRes.json();
+      
+      const rawDescriptionEn = gameDetails.description_raw || "No description available.";
+      
+      // خلاصه کردن متن‌های خیلی طولانی برای جلوگیری از سنگین شدن فایل json (اختیاری - ۱۰۰۰ کاراکتر اول)
+      const shortDescriptionEn = rawDescriptionEn.length > 1000 ? rawDescriptionEn.substring(0, 1000) + '...' : rawDescriptionEn;
+
+      // ۲. ترجمه خودکار متن انگلیسی به فارسی
+      const descriptionFa = await translateToPersian(shortDescriptionEn);
+
+      // ۳. تشکیل آبجکت نهایی بازی همراه با فیلدهای توضیحات دو زبانه
+      const updatedGames = [...myGames, {
+        id: game.id,
+        name: game.name,
+        background_image: game.background_image,
+        rating: game.rating,
+        released: game.released,
+        genres: game.genres,
+        description_en: shortDescriptionEn, // 👈 ذخیره توضیحات انگلیسی
+        description_fa: descriptionFa       // 👈 ذخیره توضیحات فارسی ترجمه شده
+      }];
+
+      // ۴. آپلود و به‌روزرسانی در گیت‌هاب پیجز
       const res = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data/games.json`, {
         method: 'PUT',
         headers: {
@@ -117,21 +152,21 @@ export default function AdminPanel() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: `Add ${game.name} to archive`,
+          message: `Add ${game.name} with dual-language description`,
           content: btoa(unescape(encodeURIComponent(JSON.stringify(updatedGames, null, 2)))),
           sha: fileSha
         })
       });
 
       if (res.status === 200 || res.status === 201) {
-        setMessage({ text: `بازی "${game.name}" با موفقیت به آرشیو اضافه شد!`, isError: false });
+        setMessage({ text: `بازی "${game.name}" همراه با توضیحات دو زبانه به آرشیو اضافه شد!`, isError: false });
         setMyGames(updatedGames);
         fetchMyGames(githubToken);
       } else {
         setMessage({ text: 'خطا در ذخیره روی گیت‌هاب. سطح دسترسی توکن را چک کنید.', isError: true });
       }
     } catch (err) {
-      setMessage({ text: 'ارتباط با سرور گیت‌هاب برقرار نشد.', isError: true });
+      setMessage({ text: 'ارتباط با سرور برقرار نشد یا خطایی در ترجمه رخ داد.', isError: true });
     }
     setLoading(false);
   };

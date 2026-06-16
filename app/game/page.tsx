@@ -101,15 +101,34 @@ function GameDetailContent() {
               )}
             </div>
 
+            {/* بخش سیستم مورد نیاز بهینه‌سازی شده و مرتب */}
             {game.requirements && (
-              <div className="bg-slate-900/60 border border-slate-900 p-5 rounded-2xl space-y-3">
-                <h3 className="text-sm font-black text-white mb-2">💻 مشخصات سیستم مورد نیاز:</h3>
-                {Object.entries(game.requirements).map(([key, value]: any) => (
-                  <div key={key} className="flex flex-col sm:flex-row sm:justify-between text-xs py-2 border-b border-slate-950 gap-1">
-                    <span className="text-slate-400 font-bold min-w-[120px] capitalize">{key.replace('_', ' ')}:</span>
-                    <span className="text-slate-200 text-left" dir="ltr">{value}</span>
+              <div className="space-y-4">
+                <h3 className="text-sm font-black text-white flex items-center gap-2 mb-1">💻 مشخصات سیستم سخت‌افزاری مورد نیاز:</h3>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* حداقل سیستم */}
+                  <div className="bg-slate-900/50 border border-slate-900 p-4 rounded-xl space-y-3">
+                    <div className="text-xs font-bold text-red-400 border-b border-slate-950 pb-2 flex items-center justify-between">
+                      <span>⚠️ حداقل سیستم مورد نیاز</span>
+                      <span className="text-[10px] bg-red-950/40 px-2 py-0.5 rounded border border-red-900/50">Minimum</span>
+                    </div>
+                    <p className="text-xs text-slate-300 leading-6 text-left font-mono whitespace-pre-line" dir="ltr">
+                      {game.requirements.minimum || 'ثبت نشده است.'}
+                    </p>
                   </div>
-                ))}
+
+                  {/* سیستم پیشنهادی */}
+                  <div className="bg-slate-900/50 border border-slate-900 p-4 rounded-xl space-y-3">
+                    <div className="text-xs font-bold text-green-400 border-b border-slate-950 pb-2 flex items-center justify-between">
+                      <span>✅ سیستم پیشنهادی آرشیو</span>
+                      <span className="text-[10px] bg-green-950/40 px-2 py-0.5 rounded border border-green-900/50">Recommended</span>
+                    </div>
+                    <p className="text-xs text-slate-300 leading-6 text-left font-mono whitespace-pre-line" dir="ltr">
+                      {game.requirements.recommended || 'ثبت نشده است.'}
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </div>

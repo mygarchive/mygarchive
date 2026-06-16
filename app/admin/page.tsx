@@ -38,7 +38,36 @@ export default function AdminPanel() {
     }
   }, []);
 
-  // منطق امنیتی سخت‌گیرانه: فقط با تایید قطعی گیت‌هاب وارد می‌شود
+  // تابع هوشمند و چندمرحله‌ای برای دور زدن تحریم و فیلترینگ با قابلیت جابجایی خودکار (Failover)
+  const fetchSmartRoute = async (targetUrl: string, parseAllOrigins = false) => {
+    // مرحله اول: تست پروکسی پرسرعت اول
+    try {
+      const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(targetUrl)}`);
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn("پروکسی اول ناموفق بود، سوئیچ به پروکسی دوم...", e);
+    }
+
+    // مرحله دوم: اگر اولی خراب بود، سوئیچ روی AllOrigins
+    try {
+      const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`);
+      if (res.ok) {
+        const jsonWrapper = await res.json();
+        return parseAllOrigins ? JSON.parse(jsonWrapper.contents) : jsonWrapper;
+      }
+    } catch (e) {
+      console.warn("پروکسی دوم هم ناموفق بود، سوئیچ به اتصال مستقیم (نیازمند وی‌پی‌ان)...", e);
+    }
+
+    // مرحله سوم: اتصال مستقیم به خود سرور اصلی (اگر وی‌پی‌ان روشن باشد کار می‌کند)
+    const directRes = await fetch(targetUrl);
+    if (directRes.ok) {
+      return await directRes.json();
+    }
+    
+    throw new Error("تمامی مسیرهای ارتباطی با سرور بازی‌ها با خطا مواجه شدند.");
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
@@ -50,7 +79,6 @@ export default function AdminPanel() {
 
     setLoading(true);
     try {
-      // تست و تایید ۱۰۰٪ اصالت توکن از سرور گیت‌هاب
       const checkRes = await fetch('https://api.github.com/user', {
         headers: { 'Authorization': `Bearer ${trimmedToken}` }
       });
@@ -87,7 +115,7 @@ export default function AdminPanel() {
         const data = await res.json();
         setFileSha(data.sha);
         setMyGames(JSON.parse(safeAtob(data.content)) || []);
-        setIsLoggedIn(true); // ورود قطعی پس از دریافت موفق دیتا
+        setIsLoggedIn(true);
       }
     } catch (err) { 
       console.error(err);
@@ -95,47 +123,33 @@ export default function AdminPanel() {
     }
   };
 
-  // متد جستجوی ضد تحریم با استفاده از پروکسی معکوس AllOrigins
   const handleSearch = async () => {
     if (!searchQuery) return;
     setLoading(true);
     try {
       const targetUrl = `https://api.rawg.io/api/games?key=${RAWG_API_KEY}&search=${encodeURIComponent(searchQuery)}&page_size=24`;
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-
-      const res = await fetch(proxyUrl);
-      if (res.ok) {
-        const jsonWrapper = await res.json();
-        const data = JSON.parse(jsonWrapper.contents); // استخراج دیتای خام RAWG از پروکسی
-        setSearchResults(data.results || []);
-      } else {
-        console.error("خطا در پاسخ سرور واسط جستجو");
-      }
+      const data = await fetchSmartRoute(targetUrl, true);
+      setSearchResults(data.results || []);
     } catch (err) { 
-      console.error("خطای ارتباطی در جستجو:", err); 
+      console.error("خطای جامع در سیستم جستجو:", err); 
+      setMessage({ text: 'خطا در برقراری ارتباط. اگر وی‌پی‌ان دارید روشن کنید و دوباره بزنید.', isError: true });
     }
     setLoading(false);
   };
 
-  // متد افزودن بازی ضد تحریم برای دریافت اطلاعات تکمیلی بدون فیلترشکن
   const handleAddGame = async (game: any) => {
     setLoading(true);
     setMessage({ text: 'در حال دریافت اطلاعات تکمیلی و مشخصات سخت‌افزاری...', isError: false });
     try {
-      // ضد تحریم کردن تمام درخواست‌های تکمیلی RAWG با پروکسی
       const detailsTarget = `https://api.rawg.io/api/games/${game.id}?key=${RAWG_API_KEY}`;
       const moviesTarget = `https://api.rawg.io/api/games/${game.id}/movies?key=${RAWG_API_KEY}`;
       const screenshotsTarget = `https://api.rawg.io/api/games/${game.id}/screenshots?key=${RAWG_API_KEY}`;
 
-      const [detailsRes, moviesRes, screenshotsRes] = await Promise.all([
-        fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(detailsTarget)}`).then(r => r.json()),
-        fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(moviesTarget)}`).then(r => r.json()),
-        fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(screenshotsTarget)}`).then(r => r.json())
+      const [details, movieData, screenshots] = await Promise.all([
+        fetchSmartRoute(detailsTarget, true),
+        fetchSmartRoute(moviesTarget, true),
+        fetchSmartRoute(screenshotsTarget, true)
       ]);
-
-      const details = JSON.parse(detailsRes.contents);
-      const movieData = JSON.parse(moviesRes.contents);
-      const screenshots = JSON.parse(screenshotsRes.contents);
       
       const descriptionFa = await translateToPersian((details.description_raw || "").substring(0, 1000));
       

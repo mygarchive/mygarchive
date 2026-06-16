@@ -70,7 +70,7 @@ function GameDetailContent() {
     if (activePhotoIndex === null || !game?.gallery) return;
 
     const swipeDistance = touchStartX.current - touchEndX.current;
-    const minSwipeDistance = 50; // حداقل پیکسل جابه‌جایی برای تشخیص حرکت
+    const minSwipeDistance = 50;
 
     if (swipeDistance > minSwipeDistance) {
       // اسوایپ به چپ -> تصویر بعدی
@@ -207,34 +207,39 @@ function GameDetailContent() {
         </div>
       </div>
 
-      {/* مدال لایت‌باکس گالری با ناوبری و قابلیت اسوایپ موبایل */}
+      {/* مدال لایت‌باکس گالری با لود فوق‌سریع و ابعاد بزرگ‌تر مانیتور */}
       {activePhotoIndex !== null && game.gallery && (
         <div 
-          className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-4 cursor-zoom-out select-none" 
+          className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-2 md:p-6 cursor-zoom-out select-none" 
           onClick={() => setActivePhotoIndex(null)}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          <div className="max-w-4xl max-h-[80vh] relative" onClick={(e) => e.stopPropagation()}>
+          {/* کانتینر اصلی تصویر با حداکثر ابعاد مجاز مانیتور */}
+          <div className="w-full max-w-[92vw] h-[82vh] max-h-[82vh] relative flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={game.gallery[activePhotoIndex]} alt="Expanded preview" className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl border border-slate-900" />
-            <button onClick={() => setActivePhotoIndex(null)} className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 text-xs w-8 h-8 flex items-center justify-center border border-slate-700">✕</button>
+            <img 
+              src={getOptimizedUrl(game.gallery[activePhotoIndex], 1400)} 
+              alt="Expanded preview" 
+              className="w-full h-full object-contain rounded-xl shadow-2xl transition-all duration-150" 
+            />
+            <button onClick={() => setActivePhotoIndex(null)} className="absolute top-4 right-4 bg-black/70 hover:bg-black/90 text-white rounded-full p-2 text-xs w-9 h-9 flex items-center justify-center border border-slate-800 transition shadow-xl">✕</button>
           </div>
 
-          {/* ایندکس آلبوم و دکمه‌های ناوبری دستی */}
-          <div className="flex items-center gap-6 mt-6 bg-slate-900/60 px-5 py-2 rounded-full border border-slate-800/50 backdrop-blur-sm" onClick={(e) => e.stopPropagation()}>
+          {/* ایندکس آلبوم و دکمه‌های ناوبری */}
+          <div className="flex items-center gap-6 mt-4 bg-slate-900/80 px-5 py-2 rounded-full border border-slate-800/70 backdrop-blur-md" onClick={(e) => e.stopPropagation()}>
             <button 
               onClick={() => setActivePhotoIndex(activePhotoIndex === 0 ? game.gallery.length - 1 : activePhotoIndex - 1)}
-              className="text-slate-400 hover:text-white transition font-bold"
+              className="text-slate-400 hover:text-white transition font-bold text-sm px-1"
             >
               ➔
             </button>
-            <span className="text-xs font-mono text-slate-400">
+            <span className="text-xs font-mono font-bold text-slate-300">
               {activePhotoIndex + 1} / {game.gallery.length}
             </span>
             <button 
               onClick={() => setActivePhotoIndex(activePhotoIndex === game.gallery.length - 1 ? 0 : activePhotoIndex + 1)}
-              className="text-slate-400 hover:text-white transition font-bold"
+              className="text-slate-400 hover:text-white transition font-bold text-sm px-1"
             >
               ←
             </button>

@@ -460,5 +460,43 @@
     },
     "description_en": "The saga of Max and Chloe, and the fate of Caledon, is yours to decide! Play as both Max and Chloe as an all-new story builds towards an epic climax. The fire will force Max and Chloe to make devastating decisions. Can they find a future together… Before everything burns?",
     "description_fa": "حماسه مکس و کلوئه و سرنوشت کالدون با شماست که تصمیم می گیرید! در نقش مکس و کلوئه بازی کنید زیرا داستانی کاملاً جدید به سمت اوج حماسی می‌رود. آتش مکس و کلویی را مجبور به تصمیم گیری ویرانگر می کند. آیا آنها می توانند آینده ای با هم پیدا کنند... قبل از اینکه همه چیز بسوزد؟"
+  },
+  {
+    "id": 983211,
+    "name": "Life is Strange: Double Exposure",
+    "background_image": "https://media.rawg.io/media/games/279/279a4377b3499615155908764e297e1c.jpg",
+    "rating": 3,
+    "released": "2024-10-29",
+    "genres": [
+      {
+        "id": 3,
+        "name": "Adventure",
+        "slug": "adventure"
+      },
+      {
+        "id": 4,
+        "name": "Action",
+        "slug": "action"
+      }
+    ],
+    "esrb_rating": "+17",
+    "playtime": 14,
+    "developers": "Deck Nine Games",
+    "steam_link": "",
+    "trailer_url": "",
+    "gallery": [
+      "https://media.rawg.io/media/screenshots/97f/97f60c5c224324f64229567311eacf7b.jpg",
+      "https://media.rawg.io/media/screenshots/8b3/8b35944e21c893e3734ce77c10913049.jpg",
+      "https://media.rawg.io/media/screenshots/e34/e34fd80c14d2bc4cfa43c1a32f79c133.jpg",
+      "https://media.rawg.io/media/screenshots/337/337cc83f9cf803f122d264f4f8887437.jpg",
+      "https://media.rawg.io/media/screenshots/b61/b61f40b27debe656eaedc45dc185ded5.jpg",
+      "https://media.rawg.io/media/screenshots/8f8/8f8d980b43d16d1c79846d6d9a69b7c8.jpg"
+    ],
+    "requirements": {
+      "minimum": "مشخصات حداقل سخت‌افزار ثبت نشده است.",
+      "recommended": "مشخصات سیستم پیشنهادی ثبت نشده است."
+    },
+    "description_en": "Max Caulfield, photographer-in-residence at the prestigious Caledon University, discovers her closest new friend, Safi, dead in the snow.\nMurdered.\nTo save her, Max tries to Rewind time - a power she’s not used in years... instead, Max opens the way to a parallel timeline where Safi is still alive, and still in danger!\nMax realizes the killer will soon strike again - in both versions of reality.\nWith her new power to Shift between two timelines - can Max solve and prevent the same murder?",
+    "description_fa": "مکس کالفیلد، عکاس مقیم دانشگاه معتبر کالدون، نزدیک‌ترین دوست جدیدش، سافی را می‌یابد که در برف مرده است.\nبه قتل رسید.\nمکس برای نجات او سعی می‌کند زمان را به عقب برگرداند - قدرتی که سال‌ها از آن استفاده نمی‌کرد... در عوض، مکس راه را به یک جدول زمانی موازی باز می‌کند که در آن Safi هنوز زنده است، و هنوز در خطر است!\nمکس متوجه می شود که قاتل به زودی دوباره حمله خواهد کرد - در هر دو نسخه واقعیت.\nمکس با قدرت جدیدش برای جابجایی بین دو خط زمانی - آیا مکس می تواند همان قتل را حل کند و از آن جلوگیری کند؟"
   }
 ]

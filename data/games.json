@@ -236,44 +236,6 @@
     "description_fa": "Rockstar Games از قسمت قبلی این سری بزرگتر شد. شما دنیای پیچیده و واقعی را از شهر آزادی GTA4 در محیط پر جنب و جوش و متنوع لوس سانتوس، از GTA San Andreas مورد علاقه طرفداران قدیمی دریافت می کنید. 561 وسیله نقلیه مختلف (از جمله هر حمل و نقلی که می توانید استفاده کنید) و با هر به روز رسانی مقدار آن افزایش می یابد. \nداستان سرایی همزمان از سه منظر منحصر به فرد: \nدنبال مایکل، جنایتکار سابق، زندگی فراغت خود به دور از گذشته، فرانکلین، کودکی که به دنبال آینده بهتر است، و تروور، همان گذشته ای که مایکل سعی دارد از آن فرار کند را دنبال کنید. \nGTA Online چالش‌های اضافی زیادی را حتی برای بازیکنان باتجربه فراهم می‌کند که تازه از حالت داستانی می‌آیند. حالا شما بازیکنان دیگری را در اطراف خواهید داشت که می توانند به شما کمک کنند تا ماموریت خود را خراب کنید. هر مکانیک GTA به‌روز می‌تواند توسط بازیکنان از طریق شخصیت منحصر به فرد قابل تنظیم تجربه شود، و محتوای انجمن همراه با سیستم سطح‌بندی باعث می‌شود همه افراد را سرگرم کند."
   },
   {
-    "id": 326252,
-    "name": "Gears 5",
-    "background_image": "https://media.rawg.io/media/games/121/1213f8b9b0a26307e672cf51f34882f8.jpg",
-    "rating": 3.91,
-    "released": "2019-09-10",
-    "genres": [
-      {
-        "id": 2,
-        "name": "Shooter",
-        "slug": "shooter"
-      },
-      {
-        "id": 4,
-        "name": "Action",
-        "slug": "action"
-      }
-    ],
-    "esrb_rating": "---",
-    "playtime": 7,
-    "developers": "The Coalition",
-    "steam_link": "",
-    "trailer_url": "",
-    "gallery": [
-      "https://media.rawg.io/media/screenshots/9f0/9f085738a4ee6bb44b4b26cd3eb9ef93.jpg",
-      "https://media.rawg.io/media/screenshots/1c8/1c8eb3c87b9396e924ade589d543790e.jpg",
-      "https://media.rawg.io/media/screenshots/a83/a832752f82cfde4a811c581e9cd3efd0.jpg",
-      "https://media.rawg.io/media/screenshots/a6f/a6fafe1183ce4b3f68287219ea3dd6c8.jpg",
-      "https://media.rawg.io/media/screenshots/38c/38c4c8601a72e1d0dacf6d1fe1c5dfb3.jpg",
-      "https://media.rawg.io/media/screenshots/ae7/ae7fcd1a2d11be26e1ea72e6d5d83ecc.jpg"
-    ],
-    "requirements": {
-      "minimum": "مشخصات حداقل سخت‌افزار ثبت نشده است.",
-      "recommended": "مشخصات سیستم پیشنهادی ثبت نشده است."
-    },
-    "description_en": "From one of gaming’s most acclaimed sagas, Gears is bigger than ever, with five thrilling modes and the deepest campaign yet. With all-out war descending, Kait Diaz breaks away to uncover her connection to the enemy and discovers the true danger to Sera – herself.\n*Xbox Live account required. Visit www.gears5.com for additional information.",
-    "description_fa": "از یکی از تحسین‌شده‌ترین حماسه‌های بازی، Gears بزرگ‌تر از همیشه است، با پنج حالت هیجان‌انگیز و عمیق‌ترین کمپین تاکنون. با شروع جنگ همه جانبه، کیت دیاز جدا می شود تا ارتباط خود را با دشمن آشکار کند و خطر واقعی سرا - خودش را کشف می کند.\n*حساب Xbox Live مورد نیاز است. برای اطلاعات بیشتر به www.gears5.com مراجعه کنید."
-  },
-  {
     "id": 494384,
     "name": "God of War: Ragnarök",
     "background_image": "https://media.rawg.io/media/games/1c3/1c305096502c475c00276c827f0fd697.jpg",

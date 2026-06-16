@@ -24,10 +24,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.2.2 # آپدیت به پچ نهایی سازگار با رانر جدید
+        uses: actions/checkout@v4.2.2
         
       - name: Setup Node
-        uses: actions/setup-node@v4.2.0 # آپدیت نسخه پکیج نود
+        uses: actions/setup-node@v4.2.0
         with:
           node-version: "24"
           
@@ -35,7 +35,7 @@ jobs:
         uses: actions/configure-pages@v5
         
       - name: Install dependencies
-        run: npm ci
+        run: npm install # ✅ تغییر به نصب معمولی برای حل ارور
         
       - name: Build with Next.js
         run: npm run build

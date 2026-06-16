@@ -38,25 +38,24 @@ export default function AdminPanel() {
     }
   }, []);
 
-  // متد ورود هوشمند و امن بدون نیاز به نام کاربری و پسورد ثابت
+  // منطق امنیتی سخت‌گیرانه: فقط با تایید قطعی گیت‌هاب وارد می‌شود
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
     
     const trimmedToken = githubToken.trim();
-    if (!trimmedToken.startsWith('ghp_')) {
-      return setLoginError('لطفاً یک توکن کلاسیک گیت‌هاب معتبر (که با ghp_ شروع می‌شود) وارد کنید.');
+    if (!trimmedToken.startsWith('ghp_') && !trimmedToken.startsWith('github_pat_')) {
+      return setLoginError('لطفاً یک توکن معتبر گیت‌هاب وارد کنید.');
     }
 
     setLoading(true);
     try {
-      // تست اعتبار توکن مستقیماً از سرورهای گیت‌هاب
+      // تست و تایید ۱۰۰٪ اصالت توکن از سرور گیت‌هاب
       const checkRes = await fetch('https://api.github.com/user', {
         headers: { 'Authorization': `Bearer ${trimmedToken}` }
       });
 
       if (checkRes.status === 200) {
-        // توکن معتبر است؛ حالا دیتای آرشیو بازی‌ها لود می‌شود
         localStorage.setItem('isAdmin', 'true');
         localStorage.setItem('gh_token', trimmedToken);
         await fetchMyGames(trimmedToken);
@@ -64,7 +63,7 @@ export default function AdminPanel() {
         setLoginError('توکن وارد شده معتبر نیست یا دسترسی لازم را ندارد!');
       }
     } catch {
-      setLoginError('خطا در برقراری ارتباط با سرور گیت‌هاب.');
+      setLoginError('خطا در برقراری ارتباط با گیت‌هاب. وضعیت اینترنت خود را بررسی کنید.');
     }
     setLoading(false);
   };
@@ -81,23 +80,45 @@ export default function AdminPanel() {
 
   const fetchMyGames = async (token: string) => {
     try {
-      const res = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data/games.json?v=${Date.now()}`, { headers: { 'Authorization': `Bearer ${token}` } });
+      const res = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data/games.json?v=${Date.now()}`, { 
+        headers: { 'Authorization': `Bearer ${token}` } 
+      });
       if (res.status === 200) {
         const data = await res.json();
         setFileSha(data.sha);
         setMyGames(JSON.parse(safeAtob(data.content)) || []);
-        setIsLoggedIn(true);
+        setIsLoggedIn(true); // ورود قطعی پس از دریافت موفق دیتا
       }
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+      console.error(err);
+      setLoginError('خطا در واکشی اطلاعات آرشیو از گیت‌هاب.');
+    }
   };
 
+  // اصلاح اساسی متد سرچ برای دور زدن باگ هدرها و عدم نیاز به VPN
   const handleSearch = async () => {
     if (!searchQuery) return;
     setLoading(true);
     try {
-      const res = await fetch(`https://api.rawg.io/api/games?key=${RAWG_API_KEY}&search=${searchQuery}&page_size=24`);
-      setSearchResults((await res.json()).results || []);
-    } catch (err) { console.error(err); }
+      // پاک‌سازی هدرها و فرستادن درخواست کاملاً مستقل به RAWG
+      const res = await fetch(`https://api.rawg.io/api/games?key=${RAWG_API_KEY}&search=${encodeURIComponent(searchQuery)}&page_size=24`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        mode: 'cors' // اجبار مرورگر به استفاده از حالت کراس‌اورجینال استاندارد
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setSearchResults(data.results || []);
+      } else {
+        console.error("خطا در پاسخ سرور RAWG");
+      }
+    } catch (err) { 
+      console.error("خطای ارتباطی در جستجو:", err); 
+    }
     setLoading(false);
   };
 

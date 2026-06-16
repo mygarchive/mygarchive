@@ -8,31 +8,41 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 🛠️ اضافه کردن پارامتر زمان زمان حال (?v= timestamp) برای دور زدن ۱۰۰٪ کش گیت‌هاب و سرور
-    fetch(`/data/games.json?v=${Date.now()}`, { cache: 'no-store' })
-      .then((res) => res.json())
+    // 🌐 خواندن مستقیم و زنده از لینک RAW گیت‌هاب برای دور زدن زمان بیلد اکشن‌ها
+    // به همراه پارامتر زمان زمان حال (?v=) جهت خنثی کردن ۱۰۰٪ کش مرورگر و CDN
+    fetch(`https://raw.githubusercontent.com/mygarchive/mygarchive.github.io/main/data/games.json?v=${Date.now()}`, {
+      cache: 'no-store'
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('فایل دیتابیس هنوز ساخته نشده یا در دسترس نیست.');
+        return res.json();
+      })
       .then((data) => {
         setGames(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch((err) => {
-        console.error('خطا در بارگذاری بازی‌های صفحه اصلی:', err);
-        setLoading(false);
+        console.error('خطا در بارگذاری بازی‌های صفحه اصلی از سرور زنده:', err);
+        // لود بک‌آپ محلی در صورت بروز هرگونه خطای شبکه
+        fetch('/data/games.json', { cache: 'no-store' })
+          .then((res) => res.json())
+          .then((localData) => setGames(Array.isArray(localData) ? localData : []))
+          .catch(() => {})
+          .finally(() => setLoading(false));
       });
   }, []);
 
-  // 🖼️ بهینه‌سازی سایز عکس‌ها برای صفحه اصلی (سایز کوچک، فشرده و ضدتحریم ایران)
+  // 🖼️ بهینه‌سازی سایز عکس‌ها برای صفحه اصلی (فشرده، سریع و ضدتحریم ایران)
   const getBypassUrl = (url: string) => {
     if (!url) return '';
     const cleanUrl = url.replace(/^https?:\/\//i, '');
-    // سایز تصویر را روی ۴۰۰ پیکسل ست کردم تا هم حجم کم شود و هم کیفیت روی مانیتورها عالی باشد
     return `https://images.weserv.nl/?url=${encodeURIComponent(cleanUrl)}&w=400&q=80&output=jpg`;
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white font-bold animate-pulse">
-        در حال بارگذاری آرشیو بازی‌ها...
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white font-bold animate-pulse" dir="rtl">
+        در حال بارگذاری آرشیو بازی‌ها به صورت آنی...
       </div>
     );
   }
@@ -59,7 +69,7 @@ export default function Home() {
                     src={getBypassUrl(game.background_image)} 
                     alt={game.name} 
                     className="object-cover w-full h-full group-hover:scale-105 transition duration-500" 
-                    loading="lazy" // بهینه‌سازی لود تدریجی تصاویر مرورگر
+                    loading="lazy"
                   />
                 </div>
                 <div className="p-4">

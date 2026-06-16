@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export', // 👈 این خط اضافه شد
+  output: 'export', // این خط فوق‌العاده مهم است
+  images: {
+    unoptimized: true, // چون سرور نداریم، به این خط نیاز داریم
+  },
 };
 
-module.exports = nextConfig;
+export default nextConfig;

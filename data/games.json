@@ -77,5 +77,26 @@
     ],
     "description_en": "Batman: Arkham Collection brings you the definitive versions of Rocksteady's Arkham Trilogy games, including all post-launch content, in one complete collection.\nExperience two of the most critically acclaimed titles of the last generation - Batman: Arkham Asylum and Batman: Arkham City, with fully remastered and updated visuals. Complete your experience with the explosive finale to the Arkham series in Batman: Arkham Knight. Become the Batman and utilize a wide range of gadgets and abilities to face off against Gotham's most dangerous villains, finally facing the ultimate threat against the city that Batman is sworn to protect.\n\nSoftware subject to license (us.playstation.com/softwarelicense). Online features require an account and are subject to terms of service and applicable privacy policy (playstationnetwork.com/terms-of-service & playstationnetwork.com/privacy-policy). One-time license fee for play on account’s designated primary PS4™ system and other PS4™ systems when signed in ...",
     "description_fa": "مجموعه Batman: Arkham نسخه های قطعی بازی های Rocksteady's Arkham Trilogy، شامل تمام محتوای پس از عرضه را در یک مجموعه کامل برای شما به ارمغان می آورد.\nدو مورد از تحسین‌شده‌ترین عناوین نسل گذشته - Batman: Arkham Asylum و Batman: Arkham City را با تصاویری کاملاً بازسازی‌شده و به‌روزرسانی شده تجربه کنید. تجربه خود را با فینال انفجاری سری Arkham در Batman: Arkham Knight کامل کنید. بتمن شوید و از طیف گسترده ای از ابزارها و توانایی ها برای رویارویی با خطرناک ترین تبهکاران گاتهام استفاده کنید و در نهایت با تهدید نهایی علیه شهری روبرو شوید که بتمن سوگند یاد کرده است از آن محافظت کند.\n\nنرم افزار مشمول مجوز (us.playstation.com/softwarelicense). ویژگی‌های آنلاین نیاز به یک حساب دارند و مشمول شرایط خدمات و خط‌مشی رازداری قابل اجرا هستند (playstationnetwork.com/terms-of-service & playstationnetwork.com/privacy-policy). هزینه مجوز یکباره برای بازی در سیستم PS4™ اصلی تعیین شده حساب و سایر سیستم‌های PS4™ هنگام ورود به سیستم ..."
+  },
+  {
+    "id": 28153,
+    "name": "Assassin's Creed Origins",
+    "background_image": "https://media.rawg.io/media/games/336/336c6bd63d83cf8e59937ab8895d1240.jpg",
+    "rating": 3.96,
+    "released": "2017-10-27",
+    "genres": [
+      {
+        "id": 4,
+        "name": "Action",
+        "slug": "action"
+      },
+      {
+        "id": 5,
+        "name": "RPG",
+        "slug": "role-playing-games-rpg"
+      }
+    ],
+    "description_en": "Assassin's Creed Origins is an open-world action game developed by Ubisoft. It further continues the series after Assassin's Creed Syndicate.\r\n\r\nThe story is set in two time periods simultaneously. In 2017, the order of Templars has recovered an ancient artifact that will allow them to seize control over humanity. Assassins plan to get the artifact back in their hands. Layla Hassan relieves the memories of two ancient Egyptians named Bayek and Aya who create the Assassins order.\r\n\r\nLevels are open-ended which allows both stealth or open combat approaches. Players are put in an open world in which they can complete quests in order to either progress through the story, level their character up or upgrade their equipment. The \"eagle vision\" mode was replaced by an eagle by the name of Senu. Players can use Senu to scout the area ahead and highlight enemies.\r\n\r\nThe game features a heavily revised combat system that relies on hit-box mechanics rather than pre-determined animations as it did...",
+    "description_fa": "Assassin's Creed Origins یک بازی اکشن جهان باز است که توسط یوبی سافت ساخته شده است. این مجموعه را بعد از Assassin's Creed Syndicate ادامه می دهد.\r\n\r\nداستان در دو مقطع زمانی به طور همزمان روایت می شود. در سال 2017، سفارش تمپلارها یک مصنوع باستانی را به دست آوردند که به آنها اجازه می دهد کنترل بر بشریت را در دست بگیرند. قاتلان قصد دارند این مصنوع را به دستان خود بازگردانند. لیلا حسن خاطرات دو مصری باستان به نام‌های بایک و آیا را که نظم Assassins را ایجاد می‌کنند، تسکین می‌دهد.\r\n\r\nسطوح با پایان باز هستند که به هر دو روش مبارزه مخفیانه یا باز اجازه می دهد. بازیکنان در یک دنیای باز قرار می‌گیرند که در آن می‌توانند کوئست‌ها را انجام دهند تا در طول داستان پیشرفت کنند، شخصیت خود را ارتقا دهند یا تجهیزات خود را ارتقا دهند. حالت \"دید عقاب\" با عقابی به نام Senu جایگزین شد. بازیکنان می توانند از Senu برای شناسایی منطقه پیش رو و برجسته کردن دشمنان استفاده کنند.\r\n\r\nاین بازی دارای یک سیستم مبارزه با تجدید نظر شدید است که به جای انیمیشن های از پیش تعیین شده، به مکانیک های جعبه ضربه متکی است."
   }
 ]

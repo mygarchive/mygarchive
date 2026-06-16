@@ -13,7 +13,7 @@ function GameDetailContent() {
 
   useEffect(() => {
     if (!gameId) return;
-    fetch('/data/games.json?v=' + Date.now())
+    fetch('https://raw.githubusercontent.com/mygarchive/mygarchive.github.io/main/data/games.json?v=' + Date.now())
       .then((res) => res.json())
       .then((data) => {
         const found = data.find((g: any) => g.id.toString() === gameId);

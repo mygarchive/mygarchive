@@ -1,11 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 export default function Home() {
   const [games, setGames] = useState<any[]>([]);
+  const [filteredGames, setFilteredGames] = useState<any[]>([]);
+  const [genres, setGenres] = useState<string[]>([]);
+  const [selectedGenre, setSelectedGenre] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
     fetch('https://api.github.com/repos/mygarchive/mygarchive.github.io/contents/data/games.json?v=' + Date.now())
@@ -13,84 +18,165 @@ export default function Home() {
       .then((repoData) => {
         if (repoData && repoData.content) {
           const content = decodeURIComponent(atob(repoData.content).split('').map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-          const data = JSON.parse(content);
-          if (Array.isArray(data)) {
-            const sorted = data.sort((a, b) => a.name.localeCompare(b.name));
-            setGames(sorted);
-          }
+          const data = JSON.parse(content) || [];
+          setGames(data);
+          setFilteredGames(data);
+
+          // استخراج هوشمند و یکتای ژانرها از لیست بازی‌ها برای بخش فیلتر
+          const allGenres: string[] = [];
+          data.forEach((game: any) => {
+            game.genres?.forEach((g: any) => {
+              if (!allGenres.includes(g.name)) {
+                allGenres.push(g.name);
+              }
+            });
+          });
+          setGenres(allGenres);
         }
+        setLoading(false);
       })
-      .catch((err) => console.error('Error loading games:', err));
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
+
+    // مدیریت نمایش یا مخفی شدن دکمه شناور برگشت به بالا براساس اسکرول
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const filteredGames = games.filter((game) =>
-    game.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // هندل کردن فیلتر ژانر و سرچ متنی همزمان
+  useEffect(() => {
+    let result = games;
 
-  const getOptimizedUrl = (url: string, width = 300) => {
-    if (!url) return '';
-    const cleanUrl = url.replace(/^https?:\/\//i, '');
-    return `https://images.weserv.nl/?url=${encodeURIComponent(cleanUrl)}&w=${width}&q=75`;
+    if (selectedGenre !== 'all') {
+      result = result.filter((game) =>
+        game.genres?.some((g: any) => g.name === selectedGenre)
+      );
+    }
+
+    if (searchQuery.trim() !== '') {
+      result = result.filter((game) =>
+        game.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    setFilteredGames(result);
+  }, [selectedGenre, searchQuery, games]);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const getOptimizedUrl = (url: string, width = 400) => {
+    if (!url) return '';
+    return `https://images.weserv.nl/?url=${encodeURIComponent(url.replace(/^https?:\/\//i, ''))}&w=${width}&q=80`;
+  };
+
+  if (loading) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-sm animate-pulse text-slate-400">در حال بارگذاری آرشیو بازی‌ها...</div>;
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12" dir="rtl">
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12 relative" dir="rtl">
       <div className="max-w-6xl mx-auto">
-        <header className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-12 border-b border-slate-900 pb-6">
+        
+        {/* هدر سایت */}
+        <header className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8 border-b border-slate-900 pb-6">
           <div>
-            <h1 className="text-3xl font-black text-white">آرشیو تخصصی بازی‌ها</h1>
+            <h1 className="text-2xl font-black text-white">🎮 آرشیو شخصی بازی‌های من</h1>
+            {/* متن تعداد بازی‌ها با سایز بزرگ و خوانا بر اساس درخواست قبلی */}
             <p className="text-xl font-black text-slate-200 mt-3">
-  تعداد بازی‌های موجود در سایت: <span className="text-2xl text-purple-400 font-extrabold">{games.length}</span> بازی
-</p>
+              تعداد بازی‌های موجود در سایت: <span className="text-2xl text-purple-400 font-extrabold">{games.length}</span> بازی
+            </p>
           </div>
-          <a 
-            href="https://t.me/HF273" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="flex items-center gap-2 px-4 py-2 bg-blue-950/50 border border-blue-900/60 rounded-xl text-xs text-blue-400 hover:bg-blue-600 hover:text-white transition"
-          >
-            ✈️ کانال تلگرام ما: @HF273
-          </a>
+          <div className="flex gap-3">
+            <a href="https://t.me/HF273" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-400 bg-blue-950/40 border border-blue-900/60 px-4 py-2 rounded-xl transition hover:bg-blue-900/30">
+              ✈️ کانال تلگرام: HF273
+            </a>
+            <Link href="/admin" className="text-xs text-slate-400 bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl transition hover:bg-slate-800">
+              🔒 ورود به مدیریت
+            </Link>
+          </div>
         </header>
 
-        <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-2xl mb-8">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="جستجو در بین بازی‌های آرشیو (به انگلیسی)..."
-            className="w-full p-3.5 bg-slate-950 border border-slate-800 rounded-xl text-sm outline-none focus:border-purple-500 transition text-left"
-            dir="ltr"
-          />
+        {/* بخش جستجو و فیلتر سیستم بر اساس ژانر */}
+        <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-2xl mb-8 flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <input 
+              type="text" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="🔍 جستجو در بین بازی‌های آرشیو..." 
+              className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-sm outline-none text-left" 
+              dir="ltr"
+            />
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-400 whitespace-nowrap">👁️ فیلتر ژانر:</span>
+            <select 
+              value={selectedGenre}
+              onChange={(e) => setSelectedGenre(e.target.value)}
+              className="p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold text-slate-200 outline-none cursor-pointer"
+            >
+              <option value="all">همه سبک‌ها (All)</option>
+              {genres.map((genre) => (
+                <option key={genre} value={genre}>{genre}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-          {filteredGames.map((game) => (
-            <Link key={game.id} href={`/game/?id=${game.id}`} className="group">
-              <div className="bg-slate-900 border border-slate-900 rounded-2xl overflow-hidden shadow-lg group-hover:border-slate-800 transition flex flex-col h-full">
-                <div className="relative aspect-[16/10] overflow-hidden bg-slate-950">
+        {/* گرید کارت‌های بازی */}
+        {filteredGames.length === 0 ? (
+          <div className="text-center py-12 text-sm text-slate-500">هیچ بازی با مشخصات فیلتر شده یافت نشد.</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {filteredGames.map((game) => (
+              <Link 
+                href={`/game?id=${game.id}`} 
+                key={game.id} 
+                className="bg-slate-900/70 border border-slate-900 rounded-2xl overflow-hidden flex flex-col justify-between group hover:border-purple-600/50 transition duration-300 shadow-md"
+              >
+                <div className="w-full h-44 overflow-hidden bg-slate-950 relative">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={getOptimizedUrl(game.background_image, 400)}
-                    alt={game.name}
-                    className="w-full h-full object-cover transition duration-300 group-hover:scale-105"
-                    loading="lazy"
+                  <img 
+                    src={getOptimizedUrl(game.background_image, 400)} 
+                    alt={game.name} 
+                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-90 group-hover:opacity-100" 
                   />
                 </div>
-                <div className="p-3 flex-1 flex flex-col justify-between">
-                  <h3 className="font-bold text-sm text-white text-left tracking-tight line-clamp-1" dir="ltr">
+                <div className="p-4 flex flex-col justify-between flex-1 space-y-3">
+                  <h3 className="font-bold text-sm text-slate-200 text-left truncate group-hover:text-purple-400 transition" dir="ltr">
                     {game.name}
                   </h3>
-                  <div className="flex justify-between items-center mt-2 pt-2 border-t border-slate-950 text-[10px] text-slate-500">
-                    <span>{game.released?.split('-')[0] || '---'}</span>
-                    <span className="text-purple-400 font-medium">★ {game.rating || '0'}</span>
+                  <div className="flex justify-between items-center border-t border-slate-950 pt-2.5 text-[11px] text-slate-400">
+                    <span className="bg-slate-950 px-2 py-0.5 rounded text-red-400 font-bold" dir="ltr">{game.esrb_rating || '---'}</span>
+                    <span className="font-mono">{game.released?.split('-')[0] || '---'}</span>
                   </div>
                 </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+              </Link>
+            ))}
+          </div>
+        )}
+
       </div>
+
+      {/* دکمه شناور رفتن به بالای صفحه (Floating Back-to-Top Button) */}
+      <button
+        onClick={scrollToTop}
+        className={`fixed bottom-6 right-6 z-50 p-3.5 bg-purple-600 hover:bg-purple-500 text-white rounded-full shadow-2xl border border-purple-500/30 transition-all duration-300 transform backdrop-blur-md ${
+          showScrollTop ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-75 pointer-events-none'
+        }`}
+        title="برگشت به بالای سایت"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-5 h-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+        </svg>
+      </button>
+
     </div>
   );
 }

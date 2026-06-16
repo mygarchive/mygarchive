@@ -95,26 +95,21 @@ export default function AdminPanel() {
     }
   };
 
-  // اصلاح اساسی متد سرچ برای دور زدن باگ هدرها و عدم نیاز به VPN
+  // متد جستجوی ضد تحریم با استفاده از پروکسی معکوس AllOrigins
   const handleSearch = async () => {
     if (!searchQuery) return;
     setLoading(true);
     try {
-      // پاک‌سازی هدرها و فرستادن درخواست کاملاً مستقل به RAWG
-      const res = await fetch(`https://api.rawg.io/api/games?key=${RAWG_API_KEY}&search=${encodeURIComponent(searchQuery)}&page_size=24`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        mode: 'cors' // اجبار مرورگر به استفاده از حالت کراس‌اورجینال استاندارد
-      });
-      
+      const targetUrl = `https://api.rawg.io/api/games?key=${RAWG_API_KEY}&search=${encodeURIComponent(searchQuery)}&page_size=24`;
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+
+      const res = await fetch(proxyUrl);
       if (res.ok) {
-        const data = await res.json();
+        const jsonWrapper = await res.json();
+        const data = JSON.parse(jsonWrapper.contents); // استخراج دیتای خام RAWG از پروکسی
         setSearchResults(data.results || []);
       } else {
-        console.error("خطا در پاسخ سرور RAWG");
+        console.error("خطا در پاسخ سرور واسط جستجو");
       }
     } catch (err) { 
       console.error("خطای ارتباطی در جستجو:", err); 
@@ -122,13 +117,25 @@ export default function AdminPanel() {
     setLoading(false);
   };
 
+  // متد افزودن بازی ضد تحریم برای دریافت اطلاعات تکمیلی بدون فیلترشکن
   const handleAddGame = async (game: any) => {
     setLoading(true);
     setMessage({ text: 'در حال دریافت اطلاعات تکمیلی و مشخصات سخت‌افزاری...', isError: false });
     try {
-      const details = await (await fetch(`https://api.rawg.io/api/games/${game.id}?key=${RAWG_API_KEY}`)).json();
-      const movieData = await (await fetch(`https://api.rawg.io/api/games/${game.id}/movies?key=${RAWG_API_KEY}`)).json();
-      const screenshots = await (await fetch(`https://api.rawg.io/api/games/${game.id}/screenshots?key=${RAWG_API_KEY}`)).json();
+      // ضد تحریم کردن تمام درخواست‌های تکمیلی RAWG با پروکسی
+      const detailsTarget = `https://api.rawg.io/api/games/${game.id}?key=${RAWG_API_KEY}`;
+      const moviesTarget = `https://api.rawg.io/api/games/${game.id}/movies?key=${RAWG_API_KEY}`;
+      const screenshotsTarget = `https://api.rawg.io/api/games/${game.id}/screenshots?key=${RAWG_API_KEY}`;
+
+      const [detailsRes, moviesRes, screenshotsRes] = await Promise.all([
+        fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(detailsTarget)}`).then(r => r.json()),
+        fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(moviesTarget)}`).then(r => r.json()),
+        fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(screenshotsTarget)}`).then(r => r.json())
+      ]);
+
+      const details = JSON.parse(detailsRes.contents);
+      const movieData = JSON.parse(moviesRes.contents);
+      const screenshots = JSON.parse(screenshotsRes.contents);
       
       const descriptionFa = await translateToPersian((details.description_raw || "").substring(0, 1000));
       
@@ -214,7 +221,7 @@ export default function AdminPanel() {
         setMyGames(updatedGames);
         setMessage({ text: `بازی "${game.name}" با موفقیت ذخیره و دیتای آن فیکس شد.`, isError: false });
       } else { setMessage({ text: 'خطا در ثبت اطلاعات روی گیت‌هاب.', isError: true }); }
-    } catch { setMessage({ text: 'خطا در ارتباط با سرورها.', isError: true }); }
+    } catch { setMessage({ text: 'خطا در ارتباط با سرورها یا پروکسی.', isError: true }); }
     setLoading(false);
   };
 

@@ -33,7 +33,8 @@ function GameDetailContent() {
   if (loading) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-sm animate-pulse text-slate-400">در حال دریافت اطلاعات بازی...</div>;
   if (!game) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-sm text-red-400">بازی مورد نظر در آرشیو یافت نشد.</div>;
 
-  const getOptimizedUrl = (url: string, width = 300) => {
+  // تابع پروکسی برای بهینه‌سازی و سبک کردن تصاویر سبک وب
+  const getOptimizedUrl = (url: string, width = 800) => {
     if (!url) return '';
     const cleanUrl = url.replace(/^https?:\/\//i, '');
     return `https://images.weserv.nl/?url=${encodeURIComponent(cleanUrl)}&w=${width}&q=80`;
@@ -42,7 +43,7 @@ function GameDetailContent() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12 relative overflow-hidden" dir="rtl">
       <div 
-        className="absolute inset-0 bg-cover bg-center opacity-[0.07] blur-3xl pointer-events-none transform scale-110"
+        className="absolute inset-0 bg-cover bg-center opacity-[0.05] blur-3xl pointer-events-none transform scale-110"
         style={{ backgroundImage: `url(${game.background_image})` }}
       />
 
@@ -53,9 +54,10 @@ function GameDetailContent() {
           </Link>
         </header>
 
-        <div className="w-full rounded-2xl overflow-hidden border border-slate-900 shadow-2xl bg-slate-950 mb-8">
+        {/* کاور اصلی بهینه‌سازی شده و بسیار سبک */}
+        <div className="w-full rounded-2xl overflow-hidden border border-slate-900 shadow-2xl bg-slate-900 mb-8 flex justify-center items-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={game.background_image} alt={game.name} className="w-full h-auto object-contain max-h-[500px]" />
+          <img src={getOptimizedUrl(game.background_image, 800)} alt={game.name} className="w-full h-auto object-cover max-h-[450px]" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -69,11 +71,11 @@ function GameDetailContent() {
               </div>
             </div>
 
-            {/* بخش توصیحات ارتقا یافته به سایز بزرگتر text-base */}
+            {/* بخش توضیحات بزرگ و خوانا */}
             <div className="space-y-5 bg-slate-900/40 border border-slate-900 p-6 rounded-2xl">
               {game.description_fa && (
                 <div>
-                  <h3 className="text-sm font-bold text-purple-400 mb-2">✍️ توضیحات بازی (ترجمه ماشینی):</h3>
+                  <h3 className="text-sm font-bold text-purple-400 mb-2">✍️ توضیحات بازی (ترجمه فارسی):</h3>
                   <p className="text-base text-slate-200 leading-8 text-justify font-normal">{game.description_fa}</p>
                 </div>
               )}
@@ -85,7 +87,26 @@ function GameDetailContent() {
               )}
             </div>
 
-            {/* بخش سیستم مورد نیاز فیکس‌شده با سایز فونت متناسب */}
+            {/* گالری تصاویر آلبومی بازی */}
+            {game.gallery && game.gallery.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-sm font-black text-white">📸 گالری تصاویر بازی:</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {game.gallery.map((imgUrl: string, idx: number) => (
+                    <div 
+                      key={idx} 
+                      onClick={() => setActivePhotoIndex(idx)}
+                      className="cursor-pointer rounded-xl overflow-hidden border border-slate-900 bg-slate-900 hover:border-purple-500 transition shadow-md"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={getOptimizedUrl(imgUrl, 300)} alt={`screenshot-${idx}`} className="w-full h-24 object-cover" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* بخش سیستم مورد نیاز هوشمند */}
             {game.requirements && (
               <div className="space-y-4">
                 <h3 className="text-sm font-black text-white flex items-center gap-2 mb-1">💻 مشخصات سیستم سخت‌افزاری مورد نیاز:</h3>
@@ -96,7 +117,7 @@ function GameDetailContent() {
                       <span className="text-[10px] bg-red-950/40 px-2 py-0.5 rounded border border-red-900/50">Minimum</span>
                     </div>
                     <p className="text-xs text-slate-300 leading-6 text-left font-mono whitespace-pre-line" dir="ltr">
-                      {game.requirements.minimum || 'ثبت نشده است.'}
+                      {game.requirements.minimum || 'مشخصات حداقل سخت‌افزار ثبت نشده است.'}
                     </p>
                   </div>
                   <div className="bg-slate-900/50 border border-slate-900 p-4 rounded-xl space-y-3">
@@ -105,7 +126,7 @@ function GameDetailContent() {
                       <span className="text-[10px] bg-green-950/40 px-2 py-0.5 rounded border border-green-900/50">Recommended</span>
                     </div>
                     <p className="text-xs text-slate-300 leading-6 text-left font-mono whitespace-pre-line" dir="ltr">
-                      {game.requirements.recommended || 'ثبت نشده است.'}
+                      {game.requirements.recommended || 'مشخصات سیستم پیشنهادی ثبت نشده است.'}
                     </p>
                   </div>
                 </div>
@@ -113,7 +134,7 @@ function GameDetailContent() {
             )}
           </div>
 
-          {/* بخش اطلاعات عمومی با سایز بزرگتر text-sm */}
+          {/* سایدبار اطلاعات عمومی و دکمه استیم */}
           <div className="space-y-6">
             <div className="bg-slate-900 border border-slate-800/60 p-5 rounded-2xl space-y-4 text-sm text-slate-300">
               <h3 className="font-black text-white text-base mb-2 border-b border-slate-900 pb-2">📊 اطلاعات عمومی</h3>
@@ -123,6 +144,7 @@ function GameDetailContent() {
               <p>🏢 سازنده/ناشر: <span className="text-slate-100" dir="ltr">{game.developers || '---'}</span></p>
               <p>⏱️ زمان اتمام: <span className="text-green-400 font-bold">{game.playtime || '---'} ساعت</span></p>
               
+              {/* احیای کامل دکمه فروشگاه استیم */}
               {game.steam_link && (
                 <div className="pt-2">
                   <a href={game.steam_link} target="_blank" rel="noopener noreferrer" className="w-full py-2.5 bg-[#171a21] hover:bg-[#2a475e] text-white border border-[#2a475e] rounded-xl font-bold flex items-center justify-center gap-2 text-xs transition">
@@ -134,6 +156,29 @@ function GameDetailContent() {
           </div>
         </div>
       </div>
+
+      {/* مدال لایت‌باکس بزرگنمایی تصاویر گالری */}
+      {activePhotoIndex !== null && game.gallery && (
+        <div 
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 cursor-zoom-out"
+          onClick={() => setActivePhotoIndex(null)}
+        >
+          <div className="max-w-4xl max-h-full relative" onClick={(e) => e.stopPropagation()}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+              src={game.gallery[activePhotoIndex]} 
+              alt="Expanded preview" 
+              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl border border-slate-800" 
+            />
+            <button 
+              onClick={() => setActivePhotoIndex(null)}
+              className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white rounded-full p-2 text-xs w-8 h-8 flex items-center justify-center border border-slate-700"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

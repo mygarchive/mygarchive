@@ -721,5 +721,36 @@
     },
     "description_en": "<strong>PLEASE NOTE:  Microsoft no longer supports creating Games for Windows-LIVE accounts within Grand Theft Auto IV. You can create an account through account.xbox.com and then log into your account in game. </strong><br/><br/>This standalone retail title spans three distinct stories, interwoven to create one of the most unique and engaging single-player experiences of this generation.<br/><br/>\t\t\t\t\t\t\t\t\t\t\t\tThis definitive Grand Theft Auto bundle boasts hundreds of hours of single-player gameplay; a full suite of open-world multiplayer game types limited only by players’ creativity; dozens of eclectic radio stations with hours of music and original dialogue",
     "description_fa": "<strong>لطفاً توجه داشته باشید: مایکروسافت دیگر از ایجاد بازی‌ها برای حساب‌های Windows-LIVE در Grand Theft Auto IV پشتیبانی نمی‌کند. می توانید از طریق account.xbox.com یک حساب کاربری ایجاد کنید و سپس وارد حساب کاربری خود در بازی شوید. </strong><br/><br/>این عنوان خرده فروشی مستقل شامل سه داستان متمایز است که در هم تنیده شده اند تا یکی از منحصر به فردترین و جذاب ترین تجربه های تک نفره این نسل را ایجاد کنند.<br/><br/> این بسته نهایی Grand Theft Auto صدها ساعت گیم پلی تک نفره را به رخ می کشد. مجموعه ای کامل از انواع بازی های چند نفره جهان باز که فقط با خلاقیت بازیکنان محدود شده است. ده ها ایستگاه رادیویی التقاطی با ساعت ها موسیقی و دیالوگ های اصلی"
+  },
+  {
+    "id": 4414,
+    "name": "Grand Theft Auto: Episodes from Liberty City",
+    "background_image": "https://media.rawg.io/media/games/470/470d21d6971de8f13ec0e1664a120cc0.jpg",
+    "rating": 4.12,
+    "released": "2009-10-29",
+    "genres": [
+      {
+        "id": 4,
+        "name": "Action",
+        "slug": "action"
+      }
+    ],
+    "esrb_rating": "+17",
+    "playtime": 3,
+    "developers": "Rockstar North",
+    "steam_link": "https://store.steampowered.com/search/?term=Grand%20Theft%20Auto%3A%20Episodes%20from%20Liberty%20City",
+    "trailer_url": "",
+    "gallery": [
+      "https://media.rawg.io/media/screenshots/200/20042a419cc533b99967379dd9e65bda.jpg",
+      "https://media.rawg.io/media/screenshots/fec/fec80636b72394b07402309ba4561eb1.jpg",
+      "https://media.rawg.io/media/screenshots/fa7/fa7323c791e995b2c36ab61a18bfd2f3.jpg",
+      "https://media.rawg.io/media/screenshots/386/3866ffe0b96612632fa22c6ecd20f427.jpg"
+    ],
+    "requirements": {
+      "minimum": "OS: Windows Vista - Service Pack 1 / Windows XP - Service Pack 3                    \nProcessor: Intel Core 2 Duo 1.8GHz, AMD Athlon X2 64 2.4GHz                    \nMemory: 1.5GB XP / 1.5GB Vista                    \nGraphics: 256MB Nvidia 7900 / 256MB ATI X1900                    \nDirectX Version: DirectX 9.0c Compliant Card                     \nHard Drive: 16GB of Hard Disc Space                     \nSound Card: 5.1 Channel Audio Card                     \nOther Requirements: Initial activation requires internet connection; Online play requires log-in to Games For Windows - Live and Rockstar Games Social Club (13+ to register); software installations required including Sony DADC SecuROM, Adobe Flash, DirectX, Games for Windows - LIVE, and Internet Explorer.",
+      "recommended": "مشخصات سیستم پیشنهادی ثبت نشده است."
+    },
+    "description_en": "Grand Theft Auto: Episodes from Liberty City, as a part of the GTA franchise, offers players an open-world action with countless signs of immorality and violence. Although Episodes from LC is not a direct sequel to the series, it is slightly connected with the original GTA IV. Despite having the same game setting as in the previous GTA chapter (the action takes place in Liberty City approximately at the same time), the city itself faces some cosmetic changes. Several new details (new vehicles, weaponry and mini-games) were also added to the gameplay. The game also has better graphics and optimization. Episodes gives players an opportunity to dive into the atmosphere of crime, which Liberty City is famous for. The game includes two separate storylines: The Lost and Damned, and The Ballad of Gay Tony. In The Lost and Damned players take control of Johnny, a member of brutal biker gang The Lost, who has to fight against rival gangs for control of a city. Ballad of Gay Tony experiences playing for Luis Lopez, who tries to find himself in the world full of violence and obscenity.",
+    "description_fa": "Grand Theft Auto: Episodes from Liberty City، به عنوان بخشی از فرنچایز GTA، یک اکشن جهان باز با نشانه های بی شماری از غیراخلاقی و خشونت را به بازیکنان ارائه می دهد. اگرچه Episodes from LC دنباله مستقیم سری نیست، اما کمی با GTA IV اصلی مرتبط است. علیرغم داشتن تنظیمات بازی مشابه در فصل قبلی GTA (اکشن تقریباً در همان زمان در شهر لیبرتی انجام می شود)، خود شهر با تغییرات زیبایی روبرو است. چندین جزئیات جدید (وسایل نقلیه جدید، سلاح و مینی بازی) نیز به گیم پلی بازی اضافه شد. همچنین بازی دارای گرافیک و بهینه سازی بهتری است. اپیزودها به بازیکنان این فرصت را می دهد تا در فضای جنایی که لیبرتی سیتی به آن شهرت دارد، شیرجه بزنند. این بازی شامل دو خط داستانی مجزا است: The Lost and Damned و The Ballad of Gay Tony. در بازی The Lost and Damned، بازیکنان کنترل جانی، یکی از اعضای باند دوچرخه‌سواری وحشیانه The Lost را به دست می‌گیرند، که باید برای کنترل یک شهر با گروه‌های رقیب مبارزه کند. Ballad of Gay Tony بازی برای لوئیس لوپز را تجربه می کند که سعی می کند خود را در دنیای پر از خشونت و فحاشی بیابد."
   }
 ]

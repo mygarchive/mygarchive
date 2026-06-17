@@ -784,5 +784,43 @@
     },
     "description_en": "Dying Light 2 brings to life a unique post-apocalyptic vision of the Modern Dark Ages - a brutal, bleak and unforgiving reality where you are as likely to perish at the hand of a human as you are by the infected. \r\n\r\nIn this exhausted world, your quick thinking, exceptional parkour abilities and brutal combat skills are the only things that let you dive into darkness and emerge alive. Make morally grey decisions and witness how they impact the world at multiple levels, shape the transformation of the City, and ultimately decide its fate.",
     "description_fa": "Dying Light 2 یک چشم انداز منحصر به فرد پسا آخرالزمانی از عصر تاریک مدرن را زنده می کند - یک واقعیت وحشیانه، تاریک و نابخشودنی که در آن به همان اندازه احتمال دارد که توسط افراد آلوده به دست یک انسان از بین برید. \r\n\r\nدر این دنیای خسته، تفکر سریع، توانایی‌های استثنایی پارکور و مهارت‌های جنگی وحشیانه تنها چیزهایی هستند که به شما اجازه می‌دهند در تاریکی شیرجه بزنید و زنده بیرون بیایید. از نظر اخلاقی تصمیمات خاکستری بگیرید و شاهد باشید که چگونه بر جهان در سطوح مختلف تأثیر می گذارد، تغییر شهر را شکل می دهد و در نهایت سرنوشت آن را تعیین می کند."
+  },
+  {
+    "id": 983211,
+    "name": "Life is Strange: Double Exposure",
+    "background_image": "https://media.rawg.io/media/games/279/279a4377b3499615155908764e297e1c.jpg",
+    "rating": 3,
+    "released": "2024-10-29",
+    "genres": [
+      {
+        "id": 3,
+        "name": "Adventure",
+        "slug": "adventure"
+      },
+      {
+        "id": 4,
+        "name": "Action",
+        "slug": "action"
+      }
+    ],
+    "esrb_rating": "+17",
+    "playtime": 14,
+    "developers": "Deck Nine Games",
+    "steam_link": "https://store.steampowered.com/search/?term=Life%20is%20Strange%3A%20Double%20Exposure",
+    "trailer_url": "",
+    "gallery": [
+      "https://media.rawg.io/media/screenshots/97f/97f60c5c224324f64229567311eacf7b.jpg",
+      "https://media.rawg.io/media/screenshots/8b3/8b35944e21c893e3734ce77c10913049.jpg",
+      "https://media.rawg.io/media/screenshots/e34/e34fd80c14d2bc4cfa43c1a32f79c133.jpg",
+      "https://media.rawg.io/media/screenshots/337/337cc83f9cf803f122d264f4f8887437.jpg",
+      "https://media.rawg.io/media/screenshots/b61/b61f40b27debe656eaedc45dc185ded5.jpg",
+      "https://media.rawg.io/media/screenshots/8f8/8f8d980b43d16d1c79846d6d9a69b7c8.jpg"
+    ],
+    "requirements": {
+      "minimum": "Requires a 64-bit processor and operating system\nOS: Windows® 10 / 11 64-bit\nProcessor: Intel Core i5-2400 / AMD FX-6300\nMemory: 12 GB RAM\nGraphics: NVIDIA GeForce GTX 960, 4 GB / AMD Radeon RX 470, 4GB\nDirectX: Version 12\nStorage: 25 GB available space\nAdditional Notes: 1080p @ 30fps. SSD Recommended.",
+      "recommended": "Requires a 64-bit processor and operating system\nOS: Windows® 10 / 11 64-bit\nProcessor: Intel Core i7-7700K / AMD Ryzen 5 3600\nMemory: 12 GB RAM\nGraphics: NVIDIA GeForce RTX 2080 Super, 8GB / AMD Radeon RX 6700 XT, 12GB\nDirectX: Version 12\nStorage: 25 GB available space\nAdditional Notes: 1080p @ 60fps. SSD Recommended."
+    },
+    "description_en": "Max Caulfield, photographer-in-residence at the prestigious Caledon University, discovers her closest new friend, Safi, dead in the snow.\nMurdered.\nTo save her, Max tries to Rewind time - a power she’s not used in years... instead, Max opens the way to a parallel timeline where Safi is still alive, and still in danger!\nMax realizes the killer will soon strike again - in both versions of reality.\nWith her new power to Shift between two timelines - can Max solve and prevent the same murder?",
+    "description_fa": "مکس کالفیلد، عکاس مقیم دانشگاه معتبر کالدون، نزدیک‌ترین دوست جدیدش، سافی را می‌یابد که در برف مرده است.\nبه قتل رسید.\nمکس برای نجات او سعی می‌کند زمان را به عقب برگرداند - قدرتی که سال‌ها از آن استفاده نمی‌کرد... در عوض، مکس راه را به یک جدول زمانی موازی باز می‌کند که در آن Safi هنوز زنده است، و هنوز در خطر است!\nمکس متوجه می شود که قاتل به زودی دوباره حمله خواهد کرد - در هر دو نسخه واقعیت.\nمکس با قدرت جدیدش برای جابجایی بین دو خط زمانی - آیا مکس می تواند همان قتل را حل کند و از آن جلوگیری کند؟"
   }
 ]

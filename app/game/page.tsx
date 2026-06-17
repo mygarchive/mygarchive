@@ -25,22 +25,30 @@ function GameDetailContent() {
     }
   }, []);
 
+  const toggleTheme = () => {
+    const newMode = !darkMode;
+    setDarkMode(newMode);
+    localStorage.setItem('theme', newMode ? 'dark' : 'light');
+  };
+
+  // مجهز به سیستم کش‌شکن جهت بروزرسانی همزمان دیتابیس در همان لحظه کامپایل گیت‌هاب
   const fetchSmartData = async () => {
+    const cacheBuster = Date.now();
     try {
-      const res = await fetch('https://cdn.statically.io/gh/mygarchive/mygarchive.github.io/main/data/games.json');
+      const res = await fetch(`https://cdn.statically.io/gh/mygarchive/mygarchive.github.io/main/data/games.json?v=${cacheBuster}`);
       if (res.ok) return await res.json();
     } catch (e) {
       console.warn("CDN اول ناموفق بود، سوئیچ به CDN دوم...", e);
     }
 
     try {
-      const res = await fetch('https://cdn.jsdelivr.net/gh/mygarchive/mygarchive.github.io@main/data/games.json');
+      const res = await fetch(`https://cdn.jsdelivr.net/gh/mygarchive/mygarchive.github.io@main/data/games.json?v=${cacheBuster}`);
       if (res.ok) return await res.json();
     } catch (e) {
       console.warn("CDN دوم ناموفق بود، سوئیچ به گیت‌هاب مستقیم...", e);
     }
 
-    const directRes = await fetch('https://api.github.com/repos/mygarchive/mygarchive.github.io/contents/data/games.json?v=' + Date.now());
+    const directRes = await fetch(`https://api.github.com/repos/mygarchive/mygarchive.github.io/contents/data/games.json?v=${cacheBuster}`);
     if (directRes.ok) {
       const repoData = await directRes.json();
       if (repoData && repoData.content) {
@@ -85,7 +93,6 @@ function GameDetailContent() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activePhotoIndex, game]);
 
-  // هندلرهای بهینه‌شده تاچ موبایل
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.changedTouches[0].clientX;
   };
@@ -116,22 +123,30 @@ function GameDetailContent() {
     }
   };
 
+  // الگوریتم کاملاً هوشمند استخراج آیدی و بازسازی لینک به فرمت مستقیم استیم فروشگاه بدون ریدایرکت سرچ کامپوننت ادمین
   const getSmartSteamLink = (steamLink: string, fallbackName: string) => {
     if (!steamLink || steamLink === '#') {
       if (fallbackName) return `https://store.steampowered.com/search/?term=${encodeURIComponent(fallbackName)}`;
       return 'https://store.steampowered.com';
     }
-    
-    const idMatch = steamLink.match(/(?:app\/|term=)(\d+)/) || steamLink.match(/\/(\d+)\/?/);
+
+    // استخراج شماره شناسه یکتا از لینک خام ورودی پنل
+    const idMatch = steamLink.match(/(?:app\/|term=|check\/app\/)(\d+)/) || steamLink.match(/\/(\d+)\/?/);
     const appId = idMatch ? idMatch[1] : null;
 
     if (appId) {
       return `https://store.steampowered.com/app/${appId}`;
     }
 
-    if (steamLink.includes('search') || steamLink.includes('term=')) {
-      if (fallbackName) {
-        return `https://store.steampowered.com/search/?term=${encodeURIComponent(fallbackName)}`;
+    // بازسازی لینک‌های متنی و تم‌های از پیش ساخته ادمین گیت‌هاب
+    if (steamLink.includes('term=')) {
+      const urlParams = new URLSearchParams(steamLink.split('?')[1]);
+      const term = urlParams.get('term');
+      if (term) {
+        // اگر شناسه در نام موجود بود (مثلا حاصل از برخی ربات‌ها)
+        const innerId = term.match(/(\d+)/);
+        if (innerId) return `https://store.steampowered.com/app/${innerId[1]}`;
+        return `https://store.steampowered.com/search/?term=${encodeURIComponent(term)}`;
       }
     }
 
@@ -208,6 +223,22 @@ function GameDetailContent() {
           >
             ➔ بازگشت به صفحه اصلی آرشیو
           </Link>
+
+          {/* اسلایدر لایو اختصاصی وضعیت روز و شب هماهنگ با صفحه اصلی سایت */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleTheme}
+              className="w-16 h-8 rounded-full p-1 transition-colors duration-300 relative focus:outline-none shadow-inner"
+              style={{ backgroundColor: darkMode ? '#334155' : '#cbd5e1' }}
+            >
+              <div
+                className="w-6 h-6 rounded-full shadow-md flex items-center justify-center text-xs transition-transform duration-300 transform select-none bg-white"
+                style={{ transform: darkMode ? 'translateX(-32px)' : 'translateX(0px)' }}
+              >
+                {darkMode ? '🌙' : '☀️'}
+              </div>
+            </button>
+          </div>
         </header>
 
         <div 
@@ -350,7 +381,6 @@ function GameDetailContent() {
             onClick={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}
             onTouchMove={handleTouchMove}
-            // فیکس نهایی: استفاده مستقیم از رویدادهای استاندارد خود محیط لمسی موبایل برای رفع ارور تایپ اسکریپت
             onMouseDown={(e) => e.stopPropagation()}
           >
             <div

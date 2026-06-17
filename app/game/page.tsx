@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { useEffect, useState, Suspense, useRef } from 'react';
@@ -15,7 +16,6 @@ function GameDetailContent() {
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
 
-  // لود همگام وضعیت تم سراسری از روی حافظه محلی سیستم
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'light') {
@@ -85,7 +85,7 @@ function GameDetailContent() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activePhotoIndex, game]);
 
-  // هندلرهای تاچ موبایل برای گالری تصاویر به همراه جلوگیری از تداخل با اسکرول پیش‌فرض مرورگر گوشی
+  // هندلرهای بهینه‌شده تاچ موبایل
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.changedTouches[0].clientX;
   };
@@ -116,7 +116,6 @@ function GameDetailContent() {
     }
   };
 
-  // تابع فیکس شده ۱۰۰٪ لینک استیم به صورت آدرس استاندارد وب و بدون اجبار به باز کردن کلاینت یا باگ سرچ خام
   const getSmartSteamLink = (steamLink: string, fallbackName: string) => {
     if (!steamLink || steamLink === '#') {
       if (fallbackName) return `https://store.steampowered.com/search/?term=${encodeURIComponent(fallbackName)}`;
@@ -149,7 +148,6 @@ function GameDetailContent() {
     return `https://images.weserv.nl/?url=${encodeURIComponent(cleanUrl)}&w=${width}&q=80`;
   };
 
-  // استایل‌های پویا بر اساس تم جاری برای تضمین خوانایی ۱۰۰ درصدی در روز و شب
   const themeStyles = {
     bg: darkMode ? '#020617' : '#f8fafc',
     text: darkMode ? '#f1f5f9' : '#0f172a',
@@ -193,7 +191,6 @@ function GameDetailContent() {
       style={{ backgroundColor: themeStyles.bg, color: themeStyles.text }}
     >
       
-      {/* تصویر پس‌زمینه با مات شدن ملایم و اوپاسیتی هوشمند */}
       <div 
         className="absolute inset-0 bg-cover bg-center blur-sm pointer-events-none transform scale-105 transition-all"
         style={{ backgroundImage: `url(${game.background_image})`, opacity: themeStyles.opacity }}
@@ -213,7 +210,6 @@ function GameDetailContent() {
           </Link>
         </header>
 
-        {/* پوستر اصلی بازی */}
         <div 
           className="w-full rounded-2xl overflow-hidden shadow-xl mb-8 flex justify-center items-center"
           style={{ backgroundColor: darkMode ? '#0f172a' : '#ffffff', border: `1px solid ${themeStyles.border}` }}
@@ -238,7 +234,6 @@ function GameDetailContent() {
               </div>
             </div>
 
-            {/* بخش توضیحات فارسی و انگلیسی کامل */}
             <div 
               className="space-y-5 p-6 rounded-2xl shadow-sm"
               style={{ backgroundColor: themeStyles.cardBg, border: `1px solid ${themeStyles.border}` }}
@@ -257,7 +252,6 @@ function GameDetailContent() {
               )}
             </div>
 
-            {/* ویدیوی پیش‌نمایش / تریلر بازی */}
             {game.trailer_url && (
               <div className="space-y-3">
                 <h3 className="text-sm font-black" style={{ color: themeStyles.titleText }}>🎬 ویدیو / تریلر بازی:</h3>
@@ -267,7 +261,6 @@ function GameDetailContent() {
               </div>
             )}
 
-            {/* گالری تصاویر پیشرفته */}
             {game.gallery && game.gallery.length > 0 && (
               <div className="space-y-3">
                 <h3 className="text-sm font-black" style={{ color: themeStyles.titleText }}>📸 گالری تصاویر بازی:</h3>
@@ -286,7 +279,6 @@ function GameDetailContent() {
               </div>
             )}
 
-            {/* مشخصات سخت‌افزاری کامل سیستم */}
             <div className="space-y-4">
               <h3 className="text-sm font-black flex items-center gap-2 mb-1" style={{ color: themeStyles.titleText }}>💻 مشخصات سیستم سخت‌افزاری مورد نیاز:</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -318,7 +310,6 @@ function GameDetailContent() {
             </div>
           </div>
 
-          {/* سایدبار اطلاعات عمومی بازی */}
           <div className="space-y-6">
             <div 
               className="p-5 rounded-2xl space-y-4 text-sm shadow-sm"
@@ -348,7 +339,6 @@ function GameDetailContent() {
         </div>
       </div>
 
-      {/* لایه فول‌اسکرین تصاویر - مجهز به دکمه‌های کنترلی بسیار بزرگ‌تر و بهینه برای لمس آسان در موبایل */}
       {activePhotoIndex !== null && game.gallery && (
         <div 
           className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-2 md:p-6 select-none" 
@@ -360,24 +350,28 @@ function GameDetailContent() {
             onClick={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}
             onTouchMove={handleTouchMove}
-            onPointerDown={handleTouchStart}
-            onPointerUp={handleTouchEnd}
+            // فیکس نهایی: استفاده مستقیم از رویدادهای استاندارد خود محیط لمسی موبایل برای رفع ارور تایپ اسکریپت
+            onMouseDown={(e) => e.stopPropagation()}
           >
-            <img 
-              src={getOptimizedUrl(game.gallery[activePhotoIndex], 1400)} 
-              alt="Expanded preview" 
-              className="w-full h-full object-contain rounded-xl shadow-2xl transition-all" 
-              draggable="false"
-            />
+            <div
+              className="w-full h-full flex items-center justify-center"
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
+              <img 
+                src={getOptimizedUrl(game.gallery[activePhotoIndex], 1400)} 
+                alt="Expanded preview" 
+                className="w-full h-full object-contain rounded-xl shadow-2xl transition-all" 
+                draggable="false"
+              />
+            </div>
           </div>
 
-          {/* باکس دکمه‌های ارتقا یافته: کلیدها عریض‌تر، بزرگ‌تر و آیکون‌ها خواناتر شده‌اند */}
           <div 
             className="flex items-center gap-5 mt-6 bg-slate-900/90 px-6 py-3.5 rounded-2xl border border-slate-800 backdrop-blur-md shadow-2xl" 
             onClick={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}
           >
-            {/* دکمه عکس بعدی (بزرگ) */}
             <button 
               onClick={() => setActivePhotoIndex(activePhotoIndex === 0 ? game.gallery.length - 1 : activePhotoIndex - 1)}
               className="text-white hover:text-purple-400 bg-slate-800 hover:bg-slate-700 transition font-black text-xl w-14 h-12 flex items-center justify-center rounded-xl border border-slate-700 active:scale-90 select-none"
@@ -386,12 +380,10 @@ function GameDetailContent() {
               ➔
             </button>
 
-            {/* شمارشگر وسط */}
             <span className="text-sm font-mono font-bold text-slate-300 bg-slate-950 px-3.5 py-1.5 rounded-lg border border-slate-900 min-w-[60px] text-center">
               {activePhotoIndex + 1} / {game.gallery.length}
             </span>
 
-            {/* دکمه بستن (بزرگ و عریض با رنگ متمایز قرمز) */}
             <button 
               onClick={() => setActivePhotoIndex(null)} 
               className="px-6 h-12 bg-red-600 hover:bg-red-500 text-white rounded-xl text-sm font-extrabold transition border border-red-700 active:scale-90 flex items-center justify-center gap-1 select-none"
@@ -399,7 +391,6 @@ function GameDetailContent() {
               بستن ×
             </button>
 
-            {/* دکمه عکس قبلی (بزرگ) */}
             <button 
               onClick={() => setActivePhotoIndex(activePhotoIndex === game.gallery.length - 1 ? 0 : activePhotoIndex + 1)}
               className="text-white hover:text-purple-400 bg-slate-800 hover:bg-slate-700 transition font-black text-xl w-14 h-12 flex items-center justify-center rounded-xl border border-slate-700 active:scale-90 select-none"

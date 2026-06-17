@@ -4,8 +4,8 @@
 import { useEffect, useState, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-// 🛠️ لایه محافظتی لوکال برای هماهنگی کامل با فرآیند بیلد و کش‌شکنی صفحه اصلی
-import localGamesData from '../data/games.json';
+// 🛠️ اصلاح آدرس ایمپورت با استفاده از @ برای دسترسی مستقیم به روت پروژه و حل خطای وب‌پک
+import localGamesData from '@/data/games.json';
 
 function GameDetailContent() {
   const searchParams = useSearchParams();

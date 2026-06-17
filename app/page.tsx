@@ -12,35 +12,60 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
+  // تابع هوشمند چندمرحله‌ای برای فچ دیتای بازی‌ها با Failover و کش CDN
+  const fetchSmartData = async () => {
+    // مرحله اول: تست سرویس فوق‌العاده سریع Statically
+    try {
+      const res = await fetch('https://cdn.statically.io/gh/mygarchive/mygarchive.github.io/main/data/games.json');
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn("CDN اول (Statically) ناموفق بود، سوئیچ به CDN دوم...", e);
+    }
+
+    // مرحله دوم: تست سرویس جهانی jsDelivr به عنوان پشتیبان
+    try {
+      const res = await fetch('https://cdn.jsdelivr.net/gh/mygarchive/mygarchive.github.io@main/data/games.json');
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn("CDN دوم (jsDelivr) هم ناموفق بود، سوئیچ به اتصال مستقیم گیت‌هاب...", e);
+    }
+
+    // مرحله سوم: فچ مستقیم از گیت‌هاب (لایه آخر در صورت اختلال در CDNها)
+    const directRes = await fetch('https://api.github.com/repos/mygarchive/mygarchive.github.io/contents/data/games.json?v=' + Date.now());
+    if (directRes.ok) {
+      const repoData = await directRes.json();
+      if (repoData && repoData.content) {
+        const content = decodeURIComponent(atob(repoData.content).split('').map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+        return JSON.parse(content);
+      }
+    }
+    
+    throw new Error("امکان دریافت دیتابیس بازی‌ها از هیچ مسیری میسر نشد.");
+  };
+
   useEffect(() => {
-    fetch('https://api.github.com/repos/mygarchive/mygarchive.github.io/contents/data/games.json?v=' + Date.now())
-      .then((res) => res.json())
-      .then((repoData) => {
-        if (repoData && repoData.content) {
-          const content = decodeURIComponent(atob(repoData.content).split('').map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-          const data = JSON.parse(content) || [];
-          
-          // مرتب‌سازی بر اساس حروف الفبا (A to Z) برای تضمین ردیف بودن بازی‌ها
-          const sortedData = data.sort((a: any, b: any) => {
-            if (!a.name) return 1;
-            if (!b.name) return -1;
-            return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-          });
+    fetchSmartData()
+      .then((data = []) => {
+        // مرتب‌سازی بر اساس حروف الفبا (A to Z)
+        const sortedData = data.sort((a: any, b: any) => {
+          if (!a.name) return 1;
+          if (!b.name) return -1;
+          return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+        });
 
-          setGames(sortedData);
-          setFilteredGames(sortedData);
+        setGames(sortedData);
+        setFilteredGames(sortedData);
 
-          // استخراج هوشمند و یکتای ژانرها از لیست بازی‌ها برای بخش فیلتر
-          const allGenres: string[] = [];
-          sortedData.forEach((game: any) => {
-            game.genres?.forEach((g: any) => {
-              if (!allGenres.includes(g.name)) {
-                allGenres.push(g.name);
-              }
-            });
+        // استخراج هوشمند و یکتای ژانرها
+        const allGenres: string[] = [];
+        sortedData.forEach((game: any) => {
+          game.genres?.forEach((g: any) => {
+            if (!allGenres.includes(g.name)) {
+              allGenres.push(g.name);
+            }
           });
-          setGenres(allGenres.sort()); // ژانرها هم الفبایی مرتب می‌شوند
-        }
+        });
+        setGenres(allGenres.sort());
         setLoading(false);
       })
       .catch((err) => {
@@ -83,13 +108,12 @@ export default function Home() {
     return `https://images.weserv.nl/?url=${encodeURIComponent(url.replace(/^https?:\/\//i, ''))}&w=${width}&q=80`;
   };
 
-  if (loading) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-sm animate-pulse text-slate-400">در حال بارگذاری آرشیو بازی‌ها...</div>;
+  if (loading) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-sm animate-pulse text-slate-400">در حال بارگذاری آرشیو بازی‌ها با بالاترین سرعت...</div>;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12 relative" dir="rtl">
       <div className="max-w-6xl mx-auto">
         
-        {/* هدر سایت */}
         <header className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8 border-b border-slate-900 pb-6">
           <div>
             <h1 className="text-2xl font-black text-white">🎮 آرشیو شخصی بازی‌های من</h1>
@@ -104,7 +128,6 @@ export default function Home() {
           </div>
         </header>
 
-        {/* بخش جستجو و فیلتر سیستم بر اساس ژانر */}
         <div className="bg-slate-900/40 border border-slate-900 p-4 rounded-2xl mb-8 flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <input 
@@ -132,7 +155,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* گرید کارت‌های بازی */}
         {filteredGames.length === 0 ? (
           <div className="text-center py-12 text-sm text-slate-500">هیچ بازی با مشخصات فیلتر شده یافت نشد.</div>
         ) : (
@@ -166,7 +188,6 @@ export default function Home() {
 
       </div>
 
-      {/* دکمه شناور رفتن به بالای صفحه */}
       <button
         onClick={scrollToTop}
         className={`fixed bottom-6 right-6 z-50 p-3.5 bg-purple-600 hover:bg-purple-500 text-white rounded-full shadow-2xl border border-purple-500/30 transition-all duration-300 transform backdrop-blur-md ${

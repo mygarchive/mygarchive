@@ -10,9 +10,35 @@ function GameDetailContent() {
   const [game, setGame] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
+  const [darkMode, setDarkMode] = useState(true);
 
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
+
+  // لود اولیه تم از روی حافظه مرورگر
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      setDarkMode(false);
+      document.documentElement.classList.remove('dark');
+    } else {
+      setDarkMode(true);
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  // تابع تغییر تم
+  const toggleTheme = () => {
+    if (darkMode) {
+      setDarkMode(false);
+      localStorage.setItem('theme', 'light');
+      document.documentElement.classList.remove('dark');
+    } else {
+      setDarkMode(true);
+      localStorage.setItem('theme', 'dark');
+      document.documentElement.classList.add('dark');
+    }
+  };
 
   // تابع هوشمند چندمرحله‌ای لود بازی تکی از لایه‌های کش واسط جهت سرعت حداکثری در ایران
   const fetchSmartData = async () => {
@@ -99,18 +125,26 @@ function GameDetailContent() {
     }
   };
 
-  // استخراج آیدی استیم برای باز شدن مستقیم داخل اپلیکیشن استیم موبایل (Deep Link) بدون باگ و سرچ مجدد
-  const getSteamAppUrl = (steamLink: string) => {
+  // تابع هوشمند برای اصلاح لینک‌های خراب سرچ و تبدیل آن به لینک مستقیم داخل برنامه یا سایت اصلی بدون باگ
+  const getSmartSteamLink = (steamLink: string) => {
     if (!steamLink) return '#';
-    const match = steamLink.match(/\/app\/(\d+)/);
-    if (match && match[1]) {
-      return `steam://store/${match[1]}`;
+    
+    // استخراج آیدی عددی بازی (چه در لینک مستقیم و چه در لینک‌های اشتباه)
+    const idMatch = steamLink.match(/(?:app\/|term=)(\d+)/) || steamLink.match(/\/(\d+)\/?/);
+    const appId = idMatch ? idMatch[1] : null;
+
+    // اگر آیدی عددی پیدا شد، آدرس مستقیم و بدون خطای بازی را بازسازی می‌کنیم
+    if (appId) {
+      // این ساختار به صورت جهانی هم روی کامپیوتر و هم روی موبایل (در صورت نصب بودن اپلیکیشن) مستقیم به صفحه بازی می‌رود
+      return `steam://openurl/https://store.steampowered.com/app/${appId}`;
     }
+
+    // لایه پشتیبان در صورت عدم وجود آیدی عددی
     return steamLink;
   };
 
-  if (loading) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-sm animate-pulse text-slate-400">در حال دریافت سریع اطلاعات بازی...</div>;
-  if (!game) return <div className="min-h-screen bg-slate-950 flex items-center justify-center text-sm text-red-400">بازی مورد نظر در آرشیو یافت نشد.</div>;
+  if (loading) return <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center text-sm animate-pulse text-slate-500 dark:text-slate-400 p-10 text-center animate-pulse transition-colors duration-300">در حال دریافت سریع اطلاعات بازی...</div>;
+  if (!game) return <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center text-sm text-red-500 transition-colors duration-300">بازی مورد نظر در آرشیو یافت نشد.</div>;
 
   const getOptimizedUrl = (url: string, width = 800) => {
     if (!url) return '';
@@ -119,48 +153,58 @@ function GameDetailContent() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12 relative overflow-hidden" dir="rtl">
-      {/* افکت پس‌زمینه اصلاح‌شده: بلور ملایم‌تر (blur-md) و وضوح بیشتر (opacity-15) برای نمایش واضح کاور اصلی بازی */}
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 p-6 md:p-12 relative overflow-hidden transition-colors duration-300" dir="rtl">
+      
+      {/* افکت پس‌زمینه اصلاح شده: بلور روی blur-sm تنظیم شد تا تصویر واضح‌تر شود + تنظیم شفافیت متناسب برای روز و شب */}
       <div 
-        className="absolute inset-0 bg-cover bg-center opacity-[0.15] blur-md pointer-events-none transform scale-105"
+        className="absolute inset-0 bg-cover bg-center opacity-[0.08] dark:opacity-[0.15] blur-sm pointer-events-none transform scale-105"
         style={{ backgroundImage: `url(${game.background_image})` }}
       />
 
       <div className="max-w-4xl mx-auto relative z-10">
-        <header className="mb-6">
-          <Link href="/" className="inline-flex items-center gap-2 text-xs text-purple-400 hover:text-purple-300 transition bg-purple-950/30 border border-purple-900/40 px-4 py-2 rounded-xl">
+        <header className="mb-6 flex justify-between items-center gap-4 border-b border-slate-200 dark:border-slate-900 pb-4">
+          <Link href="/" className="inline-flex items-center gap-2 text-xs text-purple-600 dark:text-purple-400 hover:text-purple-500 bg-purple-100 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900/40 px-4 py-2 rounded-xl transition">
             ➔ بازگشت به صفحه اصلی آرشیو
           </Link>
+
+          {/* دکمهٔ شیک سوئیچ تم روز و شب */}
+          <button
+            onClick={toggleTheme}
+            className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold shadow-sm transition hover:scale-105 active:scale-95 text-slate-800 dark:text-white"
+            title={darkMode ? "فعال‌سازی حالت روز" : "فعال‌سازی حالت شب"}
+          >
+            {darkMode ? '☀️ حالت روز' : '🌙 حالت شب'}
+          </button>
         </header>
 
         {/* پوستر اصلی بازی */}
-        <div className="w-full rounded-2xl overflow-hidden border border-slate-900 shadow-2xl bg-slate-900 mb-8 flex justify-center items-center">
+        <div className="w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-900 shadow-xl bg-white dark:bg-slate-900 mb-8 flex justify-center items-center">
           <img src={getOptimizedUrl(game.background_image, 800)} alt={game.name} className="w-full h-auto object-cover max-h-[450px]" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-6">
             <div>
-              <h1 className="text-3xl font-black text-white text-left tracking-tight" dir="ltr">{game.name}</h1>
+              <h1 className="text-3xl font-black text-slate-900 dark:text-white text-left tracking-tight" dir="ltr">{game.name}</h1>
               <div className="flex flex-wrap gap-2 mt-3" dir="ltr">
                 {game.genres?.map((g: any) => (
-                  <span key={g.id || g.name} className="text-xs font-bold bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-md text-slate-400">{g.name}</span>
+                  <span key={g.id || g.name} className="text-xs font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2.5 py-1 rounded-md text-slate-500 dark:text-slate-400">{g.name}</span>
                 ))}
               </div>
             </div>
 
             {/* بخش توضیحات فارسی و انگلیسی کامل */}
-            <div className="space-y-5 bg-slate-900/40 border border-slate-900 p-6 rounded-2xl">
+            <div className="space-y-5 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-900 p-6 rounded-2xl shadow-sm dark:shadow-none">
               {game.description_fa && (
                 <div>
-                  <h3 className="text-sm font-bold text-purple-400 mb-2">✍️ توضیحات بازی (ترجمه فارسی):</h3>
-                  <p className="text-base text-slate-200 leading-8 text-justify font-normal">{game.description_fa}</p>
+                  <h3 className="text-sm font-bold text-purple-600 dark:text-purple-400 mb-2">✍️ توضیحات بازی (ترجمه فارسی):</h3>
+                  <p className="text-base text-slate-700 dark:text-slate-200 leading-8 text-justify font-normal">{game.description_fa}</p>
                 </div>
               )}
               {game.description_en && (
-                <div className="pt-4 border-t border-slate-900" dir="ltr">
-                  <h3 className="text-xs font-bold text-slate-500 mb-2 text-left">📄 Original Description:</h3>
-                  <p className="text-sm text-slate-400 leading-7 text-left font-serif line-clamp-6 hover:line-clamp-none transition duration-300">{game.description_en}</p>
+                <div className="pt-4 border-t border-slate-100 dark:border-slate-900" dir="ltr">
+                  <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 mb-2 text-left">📄 Original Description:</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 leading-7 text-left font-serif line-clamp-6 hover:line-clamp-none transition duration-300">{game.description_en}</p>
                 </div>
               )}
             </div>
@@ -168,8 +212,8 @@ function GameDetailContent() {
             {/* ویدیوی پیش‌نمایش / تریلر بازی */}
             {game.trailer_url && (
               <div className="space-y-3">
-                <h3 className="text-sm font-black text-white">🎬 ویدیو / تریلر بازی:</h3>
-                <div className="w-full rounded-2xl overflow-hidden border border-slate-900 bg-slate-950 shadow-lg">
+                <h3 className="text-sm font-black text-slate-900 dark:text-white">🎬 ویدیو / تریلر بازی:</h3>
+                <div className="w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-900 bg-black shadow-lg">
                   <video src={game.trailer_url} controls preload="metadata" className="w-full h-auto max-h-[400px] outline-none" poster={getOptimizedUrl(game.background_image, 600)} />
                 </div>
               </div>
@@ -178,13 +222,13 @@ function GameDetailContent() {
             {/* گالری تصاویر پیشرفته */}
             {game.gallery && game.gallery.length > 0 && (
               <div className="space-y-3">
-                <h3 className="text-sm font-black text-white">📸 گالری تصاویر بازی:</h3>
+                <h3 className="text-sm font-black text-slate-900 dark:text-white">📸 گالری تصاویر بازی:</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {game.gallery.map((imgUrl: string, idx: number) => (
                     <div 
                       key={idx} 
                       onClick={() => setActivePhotoIndex(idx)}
-                      className="cursor-pointer rounded-xl overflow-hidden border border-slate-900 bg-slate-900 hover:border-purple-500 transition shadow-md"
+                      className="cursor-pointer rounded-xl overflow-hidden border border-slate-200 dark:border-slate-900 bg-white dark:bg-slate-900 hover:border-purple-500 transition shadow-sm"
                     >
                       <img src={getOptimizedUrl(imgUrl, 300)} alt={`screenshot-${idx}`} className="w-full h-24 object-cover" />
                     </div>
@@ -195,23 +239,23 @@ function GameDetailContent() {
 
             {/* مشخصات سخت‌افزاری کامل سیستم */}
             <div className="space-y-4">
-              <h3 className="text-sm font-black text-white flex items-center gap-2 mb-1">💻 مشخصات سیستم سخت‌افزاری مورد نیاز:</h3>
+              <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2 mb-1">💻 مشخصات سیستم سخت‌افزاری مورد نیاز:</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-slate-900/50 border border-slate-900 p-4 rounded-xl space-y-3">
-                  <div className="text-xs font-bold text-red-400 border-b border-slate-900 pb-2 flex items-center justify-between">
+                <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-900 p-4 rounded-xl space-y-3 shadow-sm dark:shadow-none">
+                  <div className="text-xs font-bold text-red-500 dark:text-red-400 border-b border-slate-100 dark:border-slate-900 pb-2 flex items-center justify-between">
                     <span>⚠️ حداقل سیستم مورد نیاز</span>
-                    <span className="text-[10px] bg-red-950/40 px-2 py-0.5 rounded border border-red-900/50">Minimum</span>
+                    <span className="text-[10px] bg-red-50 dark:bg-red-950/40 px-2 py-0.5 rounded border border-red-200 dark:border-red-900/50">Minimum</span>
                   </div>
-                  <p className="text-xs text-slate-300 leading-6 text-left font-mono whitespace-pre-line" dir="ltr">
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-6 text-left font-mono whitespace-pre-line" dir="ltr">
                     {game.requirements?.minimum || 'مشخصات حداقل سخت‌افزار ثبت نشده است.'}
                   </p>
                 </div>
-                <div className="bg-slate-900/50 border border-slate-900 p-4 rounded-xl space-y-3">
-                  <div className="text-xs font-bold text-green-400 border-b border-slate-900 pb-2 flex items-center justify-between">
+                <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-900 p-4 rounded-xl space-y-3 shadow-sm dark:shadow-none">
+                  <div className="text-xs font-bold text-green-600 dark:text-green-400 border-b border-slate-100 dark:border-slate-900 pb-2 flex items-center justify-between">
                     <span>✅ سیستم پیشنهادی آرشیو</span>
-                    <span className="text-[10px] bg-green-950/40 px-2 py-0.5 rounded border border-green-900/50">Recommended</span>
+                    <span className="text-[10px] bg-green-50 dark:bg-green-950/40 px-2 py-0.5 rounded border border-green-200 dark:border-green-900/50">Recommended</span>
                   </div>
-                  <p className="text-xs text-slate-300 leading-6 text-left font-mono whitespace-pre-line" dir="ltr">
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-6 text-left font-mono whitespace-pre-line" dir="ltr">
                     {game.requirements?.recommended || 'مشخصات سیستم پیشنهادی ثبت نشده است.'}
                   </p>
                 </div>
@@ -221,23 +265,22 @@ function GameDetailContent() {
 
           {/* سایدبار اطلاعات عمومی بازی */}
           <div className="space-y-6">
-            <div className="bg-slate-900 border border-slate-800/60 p-5 rounded-2xl space-y-4 text-sm text-slate-300">
-              <h3 className="font-black text-white text-base mb-2 border-b border-slate-900 pb-2">📊 اطلاعات عمومی</h3>
-              <p>🗓️ تاریخ انتشار: <span className="text-slate-100 font-bold">{game.released || '---'}</span></p>
-              <p>⭐ امتیاز منتقدین: <span className="text-purple-400 font-bold">{game.rating || '---'} / 5</span></p>
-              <p>🔞 رده سنی: <span className="text-red-400 font-bold" dir="ltr">{game.esrb_rating || '---'}</span></p>
-              <p>🏢 سازنده/ناشر: <span className="text-slate-100" dir="ltr">{game.developers || '---'}</span></p>
-              <p>⏱️ زمان اتمام: <span className="text-green-400 font-bold">{game.playtime || '---'} ساعت</span></p>
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/60 p-5 rounded-2xl space-y-4 text-sm text-slate-600 dark:text-slate-300 shadow-sm dark:shadow-none transition-colors duration-300">
+              <h3 className="font-black text-slate-900 dark:text-white text-base mb-2 border-b border-slate-100 dark:border-slate-900 pb-2">📊 اطلاعات عمومی</h3>
+              <p>🗓️ تاریخ انتشار: <span className="text-slate-900 dark:text-slate-100 font-bold">{game.released || '---'}</span></p>
+              <p>⭐ امتیاز منتقدین: <span className="text-purple-600 dark:text-purple-400 font-bold">{game.rating || '---'} / 5</span></p>
+              <p>🔞 رده سنی: <span className="text-red-500 dark:text-red-400 font-bold" dir="ltr">{game.esrb_rating || '---'}</span></p>
+              <p>🏢 سازنده/ناشر: <span className="text-slate-800 dark:text-slate-100" dir="ltr">{game.developers || '---'}</span></p>
+              <p>⏱️ زمان اتمام: <span className="text-green-600 dark:text-green-400 font-bold">{game.playtime || '---'} ساعت</span></p>
               
               {game.steam_link && (
-                <div className="pt-2 space-y-2">
-                  {/* دکمه اول: لینک مستقیم و عمیق به اپلیکیشن اختصاصی استیم روی موبایل */}
-                  <a href={getSteamAppUrl(game.steam_link)} className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 text-xs transition duration-200">
-                    📱 باز کردن مستقیم در اپ استیم موبایل
-                  </a>
-                  {/* دکمه دوم: باز کردن نسخه تحت وب استیم در مرورگر به عنوان جایگزین */}
-                  <a href={game.steam_link} target="_blank" rel="noopener noreferrer" className="w-full py-2 bg-[#171a21] hover:bg-[#2a475e] text-slate-400 rounded-xl flex items-center justify-center gap-2 text-[11px] transition duration-200">
-                    🌐 باز کردن نسخه تحت وب استیم
+                <div className="pt-2">
+                  {/* تک دکمهٔ هوشمند و ادغام‌شده با فراخوانی تابع اصلاح‌کنندهٔ هوشمند لینک استیم */}
+                  <a 
+                    href={getSmartSteamLink(game.steam_link)} 
+                    className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 text-xs transition shadow-lg shadow-purple-900/10"
+                  >
+                    🎮 مشاهده در استیم (Steam)
                   </a>
                 </div>
               )}
@@ -246,7 +289,7 @@ function GameDetailContent() {
         </div>
       </div>
 
-      {/* باکس نمایش تمام صفحه تصاویر کاملاً بهینه‌سازی شده برای موبایل و دکمه ضربدر پایین صفحه */}
+      {/* باکس نمایش تمام صفحه تصاویر کاملاً بهینه‌سازی شده برای موبایل */}
       {activePhotoIndex !== null && game.gallery && (
         <div 
           className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-2 md:p-6 cursor-zoom-out select-none" 
@@ -298,7 +341,7 @@ function GameDetailContent() {
 
 export default function GameDetailPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-950 text-slate-400 p-10 text-center animate-pulse">در حال لود سیستم ناوبری...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-400 p-10 text-center animate-pulseTransition-colors duration-300">در حال لود سیستم ناوبری...</div>}>
       <GameDetailContent />
     </Suspense>
   );

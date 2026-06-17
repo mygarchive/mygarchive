@@ -9,7 +9,7 @@ export default function Home() {
   const [filteredGames, setFilteredGames] = useState<any[]>([]);
   const [genres, setGenres] = useState<string[]>([]);
   const [selectedGenre, setSelectedGenre] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<string>('alphabetical'); // وضعیت مرتب‌سازی جدید
+  const [sortBy, setSortBy] = useState<string>('alphabetical');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -68,7 +68,7 @@ export default function Home() {
           });
         });
         setGenres(allGenres.sort());
-        setLoading(false))
+        setLoading(false); // ✅ پرانتز اضافه اصلاح شد
       })
       .catch((err) => {
         console.error(err);
@@ -80,21 +80,17 @@ export default function Home() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // منطق مجهز و زنده فیلترها + اعمال سیستم مرتب‌سازی درخواستی به صورت کاملاً تفکیک‌شده
   useEffect(() => {
     let result = [...games];
 
-    // ۱. اعمال فیلتر ژانر
     if (selectedGenre !== 'all') {
       result = result.filter((game) => game.genres?.some((g: any) => g.name === selectedGenre));
     }
 
-    // ۲. اعمال فیلتر سرچ متنی
     if (searchQuery.trim() !== '') {
       result = result.filter((game) => game.name.toLowerCase().includes(searchQuery.toLowerCase()));
     }
 
-    // ۳. اعمال سیستم مرتب‌سازی (Sort) مجزا
     if (sortBy === 'alphabetical') {
       result.sort((a, b) => {
         if (!a.name) return 1;
@@ -105,13 +101,13 @@ export default function Home() {
       result.sort((a, b) => {
         const dateA = a.released ? new Date(a.released).getTime() : 0;
         const dateB = b.released ? new Date(b.released).getTime() : 0;
-        return dateB - dateA; // از جدیدترین به قدیمی‌ترین
+        return dateB - dateA;
       });
     } else if (sortBy === 'rating') {
       result.sort((a, b) => {
         const ratingA = a.rating ? parseFloat(a.rating) : 0;
         const ratingB = b.rating ? parseFloat(b.rating) : 0;
-        return ratingB - ratingA; // از بیشترین امتیاز به کمترین
+        return ratingB - ratingA;
       });
     }
 
@@ -194,12 +190,10 @@ export default function Home() {
           </div>
         </header>
 
-        {/* باکس ابزارهای فیلتر و مرتب‌سازی - کاملاً تفکیک‌شده و واکنش‌گرا */}
         <div 
           className="p-4 rounded-2xl mb-8 flex flex-col lg:flex-row gap-4 shadow-sm"
           style={{ backgroundColor: darkMode ? 'rgba(15, 23, 42, 0.4)' : '#ffffff', border: `1px solid ${themeStyles.border}` }}
         >
-          {/* بخش سرچ متنی */}
           <div className="flex-1">
             <input 
               type="text" 
@@ -213,7 +207,6 @@ export default function Home() {
           </div>
           
           <div className="flex flex-wrap items-center gap-4">
-            {/* ۱. فیلتر سبک و ژانر بازی */}
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold whitespace-nowrap" style={{ color: themeStyles.subText }}>👁️ فیلتر ژانر:</span>
               <select 
@@ -229,7 +222,6 @@ export default function Home() {
               </select>
             </div>
 
-            {/* ۲. فیلتر جدید مرتب‌سازی اختصاصی جداگانه */}
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold whitespace-nowrap" style={{ color: themeStyles.subText }}>↕️ مرتب‌سازی:</span>
               <select 
@@ -269,7 +261,6 @@ export default function Home() {
                     {game.name}
                   </h3>
                   
-                  {/* بخش اصلاح شده زیر تصویر: نمایش سال انتشار و امتیاز (Rating) بجای رده سنی */}
                   <div 
                     className="flex justify-between items-center pt-2.5 text-[11px]"
                     style={{ borderTop: `1px solid ${darkMode ? '#020617' : '#f1f5f9'}`, color: themeStyles.subText }}

@@ -11,7 +11,6 @@ function GameDetailContent() {
   const [loading, setLoading] = useState(true);
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
 
-  // مراجع لمسی برای موبایل (Swipe)
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
 
@@ -34,7 +33,6 @@ function GameDetailContent() {
       });
   }, [gameId]);
 
-  // مدیریت رویدادهای کیبورد (چپ، راست، اسکیپ)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (activePhotoIndex === null || !game?.gallery) return;
@@ -42,11 +40,9 @@ function GameDetailContent() {
       if (e.key === 'Escape') {
         setActivePhotoIndex(null);
       } else if (e.key === 'ArrowRight') {
-        // در چیدمان راست‌به‌چین، کلید راست به عکس قبلی می‌رود
         const prevIndex = activePhotoIndex === 0 ? game.gallery.length - 1 : activePhotoIndex - 1;
         setActivePhotoIndex(prevIndex);
       } else if (e.key === 'ArrowLeft') {
-        // کلید چپ به عکس بعدی می‌رود
         const nextIndex = activePhotoIndex === game.gallery.length - 1 ? 0 : activePhotoIndex + 1;
         setActivePhotoIndex(nextIndex);
       }
@@ -56,7 +52,6 @@ function GameDetailContent() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activePhotoIndex, game]);
 
-  // رویدادهای حرکتی موبایل
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.changedTouches[0].clientX;
   };
@@ -73,11 +68,9 @@ function GameDetailContent() {
     const minSwipeDistance = 50;
 
     if (swipeDistance > minSwipeDistance) {
-      // اسوایپ به چپ -> تصویر بعدی
       const nextIndex = activePhotoIndex === game.gallery.length - 1 ? 0 : activePhotoIndex + 1;
       setActivePhotoIndex(nextIndex);
     } else if (swipeDistance < -minSwipeDistance) {
-      // اسوایپ به راست -> تصویر قبلی
       const prevIndex = activePhotoIndex === 0 ? game.gallery.length - 1 : activePhotoIndex - 1;
       setActivePhotoIndex(prevIndex);
     }
@@ -106,9 +99,7 @@ function GameDetailContent() {
           </Link>
         </header>
 
-        {/* کاور اصلی بهینه‌شده با لود فوق‌سریع */}
         <div className="w-full rounded-2xl overflow-hidden border border-slate-900 shadow-2xl bg-slate-900 mb-8 flex justify-center items-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={getOptimizedUrl(game.background_image, 800)} alt={game.name} className="w-full h-auto object-cover max-h-[450px]" />
         </div>
 
@@ -123,7 +114,6 @@ function GameDetailContent() {
               </div>
             </div>
 
-            {/* توضیحات بازی */}
             <div className="space-y-5 bg-slate-900/40 border border-slate-900 p-6 rounded-2xl">
               {game.description_fa && (
                 <div>
@@ -139,7 +129,6 @@ function GameDetailContent() {
               )}
             </div>
 
-            {/* گالری تصاویر بهینه‌سازی شده */}
             {game.gallery && game.gallery.length > 0 && (
               <div className="space-y-3">
                 <h3 className="text-sm font-black text-white">📸 گالری تصاویر بازی:</h3>
@@ -150,7 +139,6 @@ function GameDetailContent() {
                       onClick={() => setActivePhotoIndex(idx)}
                       className="cursor-pointer rounded-xl overflow-hidden border border-slate-900 bg-slate-900 hover:border-purple-500 transition shadow-md"
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={getOptimizedUrl(imgUrl, 300)} alt={`screenshot-${idx}`} className="w-full h-24 object-cover" />
                     </div>
                   ))}
@@ -158,7 +146,6 @@ function GameDetailContent() {
               </div>
             )}
 
-            {/* رندر سیستم مورد نیاز */}
             <div className="space-y-4">
               <h3 className="text-sm font-black text-white flex items-center gap-2 mb-1">💻 مشخصات سیستم سخت‌افزاری مورد نیاز:</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -184,7 +171,6 @@ function GameDetailContent() {
             </div>
           </div>
 
-          {/* سایدبار اطلاعات عمومی */}
           <div className="space-y-6">
             <div className="bg-slate-900 border border-slate-800/60 p-5 rounded-2xl space-y-4 text-sm text-slate-300">
               <h3 className="font-black text-white text-base mb-2 border-b border-slate-900 pb-2">📊 اطلاعات عمومی</h3>
@@ -194,7 +180,6 @@ function GameDetailContent() {
               <p>🏢 سازنده/ناشر: <span className="text-slate-100" dir="ltr">{game.developers || '---'}</span></p>
               <p>⏱️ زمان اتمام: <span className="text-green-400 font-bold">{game.playtime || '---'} ساعت</span></p>
               
-              {/* دکمه استیم */}
               {game.steam_link && (
                 <div className="pt-2">
                   <a href={game.steam_link} target="_blank" rel="noopener noreferrer" className="w-full py-2.5 bg-[#171a21] hover:bg-[#2a475e] text-white border border-[#171a21] hover:border-[#2a475e] rounded-xl font-bold flex items-center justify-center gap-2 text-xs transition duration-200">
@@ -207,7 +192,6 @@ function GameDetailContent() {
         </div>
       </div>
 
-      {/* مدال لایت‌باکس گالری با لود فوق‌سریع و ابعاد بزرگ‌تر مانیتور */}
       {activePhotoIndex !== null && game.gallery && (
         <div 
           className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-2 md:p-6 cursor-zoom-out select-none" 
@@ -215,9 +199,7 @@ function GameDetailContent() {
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          {/* کانتینر اصلی تصویر با حداکثر ابعاد مجاز مانیتور */}
           <div className="w-full max-w-[92vw] h-[82vh] max-h-[82vh] relative flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img 
               src={getOptimizedUrl(game.gallery[activePhotoIndex], 1400)} 
               alt="Expanded preview" 
@@ -226,7 +208,6 @@ function GameDetailContent() {
             <button onClick={() => setActivePhotoIndex(null)} className="absolute top-4 right-4 bg-black/70 hover:bg-black/90 text-white rounded-full p-2 text-xs w-9 h-9 flex items-center justify-center border border-slate-800 transition shadow-xl">✕</button>
           </div>
 
-          {/* ایندکس آلبوم و دکمه‌های ناوبری */}
           <div className="flex items-center gap-6 mt-4 bg-slate-900/80 px-5 py-2 rounded-full border border-slate-800/70 backdrop-blur-md" onClick={(e) => e.stopPropagation()}>
             <button 
               onClick={() => setActivePhotoIndex(activePhotoIndex === 0 ? game.gallery.length - 1 : activePhotoIndex - 1)}

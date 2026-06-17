@@ -622,41 +622,6 @@
     "description_fa": "پس از یک دوره فاجعه برای دنیای آزروث، نیروهایی که مدت هاست فراموش شده اند در جزایر اسطوره ای اژدها، خانه اجدادی اژدها، در حال حرکت هستند. World of Warcraft®: Dragonflight™، نهمین بسط برای بازی نقش‌آفرینی آنلاین و چندنفره تحسین‌شده Blizzard Entertainment، بازیکنان را به این سرزمین افسانه‌ای می‌فرستد و دوره جدیدی از ماجراجویی‌های فانتزی را آغاز می‌کند. \n\nهمانطور که نیروهای مدت طولانی در میهن مقدس خود به حرکت در می آیند، اژدهایان آزروت - گاه متحدان و دشمنان نژادهای فانی - از قهرمانان اتحاد و هورد می خواهند تا با تهدیدات و اسرار باستانی که در آستانه بیداری هستند، کمک کنند."
   },
   {
-    "id": 388315,
-    "name": "World of Warcraft: Shadowlands",
-    "background_image": "https://media.rawg.io/media/games/1bf/1bff5a69755eaeef9d37b4e0a14e9bca.jpg",
-    "rating": 3.3,
-    "released": "2020-11-23",
-    "genres": [
-      {
-        "id": 59,
-        "name": "Massively Multiplayer",
-        "slug": "massively-multiplayer"
-      },
-      {
-        "id": 5,
-        "name": "RPG",
-        "slug": "role-playing-games-rpg"
-      }
-    ],
-    "esrb_rating": "---",
-    "playtime": 0,
-    "developers": "---",
-    "steam_link": "https://store.steampowered.com/search/?term=World%20of%20Warcraft%3A%20Shadowlands",
-    "trailer_url": "",
-    "gallery": [
-      "https://media.rawg.io/media/screenshots/d33/d3392c86c97a30ea308a32d9e60a4ab6.jpg",
-      "https://media.rawg.io/media/screenshots/33c/33c1fe5f1e4b2b0c087882f8deac7b6d.jpg",
-      "https://media.rawg.io/media/screenshots/719/719eee7d6c51431c21c061283d6a0224.jpg"
-    ],
-    "requirements": {
-      "minimum": "مشخصات حداقل سخت‌افزار ثبت نشده است.",
-      "recommended": "مشخصات سیستم پیشنهادی ثبت نشده است."
-    },
-    "description_en": "What lies beyond the world you know? The Shadowlands, resting place for every mortal soul—virtuous or vile—that has ever lived. Pre-purchase the next World of Warcraft expansion now and be ready to discover what awaits in this world between worlds.",
-    "description_fa": "چه چیزی فراتر از دنیایی که می شناسید نهفته است؟ سرزمین سایه ها، محل استراحت هر روح فانی – فضیلت یا پست – که تا به حال زندگی کرده است. اکنون نسخه بعدی World of Warcraft را پیش خرید کنید و آماده باشید تا آنچه را که در این جهان بین دنیاها در انتظار شماست کشف کنید."
-  },
-  {
     "id": 987516,
     "name": "Dying Light: The Beast",
     "background_image": "https://media.rawg.io/media/games/b20/b2055f1b6d12a6342deec3565e465852.jpg",
@@ -822,5 +787,40 @@
     },
     "description_en": "No description available.",
     "description_fa": ""
+  },
+  {
+    "id": 388315,
+    "name": "World of Warcraft: Shadowlands",
+    "background_image": "https://media.rawg.io/media/games/1bf/1bff5a69755eaeef9d37b4e0a14e9bca.jpg",
+    "rating": 3.3,
+    "released": "2020-11-23",
+    "genres": [
+      {
+        "id": 59,
+        "name": "Massively Multiplayer",
+        "slug": "massively-multiplayer"
+      },
+      {
+        "id": 5,
+        "name": "RPG",
+        "slug": "role-playing-games-rpg"
+      }
+    ],
+    "esrb_rating": "---",
+    "playtime": 0,
+    "developers": "---",
+    "steam_link": "https://store.steampowered.com/search/?term=World%20of%20Warcraft%3A%20Shadowlands",
+    "trailer_url": "",
+    "gallery": [
+      "https://media.rawg.io/media/screenshots/d33/d3392c86c97a30ea308a32d9e60a4ab6.jpg",
+      "https://media.rawg.io/media/screenshots/33c/33c1fe5f1e4b2b0c087882f8deac7b6d.jpg",
+      "https://media.rawg.io/media/screenshots/719/719eee7d6c51431c21c061283d6a0224.jpg"
+    ],
+    "requirements": {
+      "minimum": "مشخصات حداقل سخت‌افزار ثبت نشده است.",
+      "recommended": "مشخصات سیستم پیشنهادی ثبت نشده است."
+    },
+    "description_en": "What lies beyond the world you know? The Shadowlands, resting place for every mortal soul—virtuous or vile—that has ever lived. Pre-purchase the next World of Warcraft expansion now and be ready to discover what awaits in this world between worlds.",
+    "description_fa": "چه چیزی فراتر از دنیایی که می شناسید نهفته است؟ سرزمین سایه ها، محل استراحت هر روح فانی – فضیلت یا پست – که تا به حال زندگی کرده است. اکنون نسخه بعدی World of Warcraft را پیش خرید کنید و آماده باشید تا آنچه را که در این جهان بین دنیاها در انتظار شماست کشف کنید."
   }
 ]

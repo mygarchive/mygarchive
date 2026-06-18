@@ -291,5 +291,45 @@
     },
     "description_en": "A bold new era of the award-winning Life is Strange begins, with an all-new playable lead character and a thrilling mystery to solve!\r\nPre-order Life Is Strange: True Colors now to receive 4 additional in-game outfits for Alex.\r\nAlex Chen has long suppressed her 'curse': the supernatural ability to experience, absorb and manipulate the strong emotions of others, which she sees as blazing, colored auras.\r\nWhen her brother dies in a so-called accident, Alex must embrace her volatile power to find the truth – and uncover the dark secrets buried by a small town.\r\nTHE TRUTH WILL HURT\r\nDiscover the shocking secrets behind your brother’s death in an emotional roller-coaster of an adventure.\r\nFEEL EVERYTHING\r\nChange fate and change lives with the psychic power of Empathy.\r\nFORGE DEEP RELATIONSHIPS\r\nBuild trust with the townsfolk – and embrace friendship or romance with Ryan and Steph.\r\nA TRULY PERSONAL STORY\r\nMake tough decisions and choose your own future. Freely roam the streets, stores, and hidden spaces of Haven Springs and meet unforgettable characters.\r\nFIND YOUR VOICE\r\nAnd decide Alex's style, with up to 24 outfits in your wardrobe.\r\nEXCLUSIVE SOUNDTRACK\r\nNew tracks by mxmtoon and Novo Amor, and extensive licensed songs including Radiohead, Phoebe Bridgers, Gabrielle Aplin, and more.",
     "description_fa": "توضیحات بازی (ترجمه ماشینی و خودکار):\nیک دوره جدید جسورانه از برنده جایزه Life is Strange آغاز می شود، با یک شخصیت اصلی قابل بازی کاملاً جدید و یک معمای هیجان انگیز برای حل!\r\nاکنون Life Is Strange: True Colors را پیش‌سفارش دهید تا 4 لباس درون بازی برای الکس دریافت کنید.\r\nالکس چن مدت‌هاست که «نفرین» خود را سرکوب کرده است: توانایی ماوراء طبیعی برای تجربه، جذب و دستکاری احساسات قوی دیگران، که به نظر او هاله‌های درخشان و رنگی است.\r\nوقتی برادرش در به اصطلاح تصادف می میرد، الکس باید قدرت فرار او را برای یافتن حقیقت در آغوش بگیرد - و اسرار تاریک مدفون شده توسط یک شهر کوچک را کشف کند.\r\nحقیقت صدمه خواهد زد\r\nاسرار تکان دهنده مرگ برادرتان را در یک ترن هوایی هیجانی از یک ماجراجویی کشف کنید.\r\nهمه چیز را احساس کنید\r\nبا نیروی روانی همدلی سرنوشت را تغییر دهید و زندگی را تغییر دهید.\r\nایجاد روابط عمیق\r\nبا مردم شهر اعتماد ایجاد کنید - و با رایان و استف دوستی یا عاشقانه را در آغوش بگیرید.\r\nیک داستان واقعاً شخصی\r\nتصمیمات سخت بگیرید و آینده خود را انتخاب کنید. آزادانه در خیابان ها، فروشگاه ها و فضاهای مخفی Haven Springs پرسه بزنید و با شخصیت های فراموش نشدنی ملاقات کنید.\r\nصدای خود را پیدا کنید\r\nو با حداکثر 24 لباس در کمد لباس خود، سبک الکس را تعیین کنید.\r\nموسیقی متن منحصر به فرد\r\nآهنگ‌های جدید mxmtoon و Novo Amor، و آهنگ‌های دارای مجوز گسترده از جمله Radiohead، Phoebe Bridgers، Gabrielle Aplin و غیره."
+  },
+  {
+    "id": 4459,
+    "name": "Grand Theft Auto IV",
+    "background_image": "https://media.rawg.io/media/games/4a0/4a0a1316102366260e6f38fd2a9cfdce.jpg",
+    "rating": 4.26,
+    "released": "2008-04-29",
+    "genres": [
+      {
+        "id": 3,
+        "name": "Adventure",
+        "slug": "adventure"
+      },
+      {
+        "id": 4,
+        "name": "Action",
+        "slug": "action"
+      }
+    ],
+    "esrb_rating": "+17",
+    "playtime": 10,
+    "developers": "Rockstar North",
+    "steam_link": "",
+    "trailer_url": "",
+    "youtube_videos": [],
+    "gallery": [
+      "https://media.rawg.io/media/screenshots/07f/07f7cf80741ff306e4eca982c3e64ac8.jpg",
+      "https://media.rawg.io/media/screenshots/fef/fefd51ec13aa33acbd796ef79bcef7cb.jpg",
+      "https://media.rawg.io/media/screenshots/b78/b78ffd258d5793be704c380e572748bc.jpg",
+      "https://media.rawg.io/media/screenshots/17c/17c85ab9dfc4fda8e1e5ba72932ef2bf.jpg",
+      "https://media.rawg.io/media/screenshots/a12/a12ca99cc74c1e7eba7100b0891dd1e0.jpg",
+      "https://media.rawg.io/media/screenshots/b25/b254f9729ae3f36a9ccffccaa01d5cf6.jpg",
+      "https://media.rawg.io/media/games/4a0/4a0a1316102366260e6f38fd2a9cfdce.jpg"
+    ],
+    "requirements": {
+      "minimum": "OS: Windows Vista - Service Pack 1 / Windows XP - Service Pack 3                    \nProcessor: Intel Core 2 Duo 1.8GHz, AMD Athlon X2 64 2.4GHz                    \nMemory: 1.5GB XP / 1.5GB Vista                    \nGraphics: 256MB Nvidia 7900 / 256MB ATI X1900                    \nDirectX Version: DirectX 9.0c Compliant Card                     \nHard Drive: 16GB of Hard Disc Space                     \nSound Card: 5.1 Channel Audio Card                     \nOther Requirements: Initial activation requires internet connection; Online play requires log-in to Games For Windows - Live and Rockstar Games Social Club (13+ to register); software installations required including Adobe Flash, DirectX, Microsoft’s .NET Framework 3.0, Games For Windows - LIVE, and Internet Explorer.",
+      "recommended": "مشخصات سیستم پیشنهادی ثبت نشده است."
+    },
+    "description_en": "Every crime story is a story of a search for success. The player will become Niko Bellic, immigrant arriving at the Liberty City to reunite with his cousin Roman and find the man that betrayed him and his army unit fifteen years prior to the events of the game. While protecting his cousin, Niko has to deal with loan sharks, Russian mobsters, and other gangs. After the third game, GTA brought more realism to the player, in order to make the city and its people look more believable. Street vendors on every corner will sell food that replenishes health, bars with playable dart boards, bowling alleys and even comedy clubs and movie theatres. Open world will allow players not only hang out with important NPC in order to receive bonuses and unlocks but taking girls on the dates as well, to help Niko settle. Multiplayer mode allows up to 32 players to explore the copy of the single-player city and initiate multiplayer activities, like races or Deathmatches.",
+    "description_fa": "توضیحات بازی (ترجمه ماشینی و خودکار):\nهر داستان جنایی، داستان جستجوی موفقیت است. بازیکن تبدیل به نیکو بلیک می شود، مهاجری که به شهر لیبرتی می رسد تا دوباره با پسر عمویش رومن متحد شود و مردی را پیدا کند که پانزده سال قبل از رویدادهای بازی به او و واحد ارتشش خیانت کرده است. نیکو در حالی که از پسر عموی خود محافظت می کند، مجبور است با کوسه های قرضه دار، اوباش روسی و سایر باندها مقابله کند. بعد از بازی سوم، GTA رئالیسم بیشتری را برای بازیکن به ارمغان آورد تا شهر و مردمش را باورپذیرتر جلوه دهد. فروشندگان خیابانی در هر گوشه، غذاهایی را می فروشند که سلامتی را تامین می کند، بارهایی با تخته دارت قابل بازی، سالن های بولینگ و حتی کلوپ های کمدی و سینما. دنیای باز به بازیکنان این امکان را می‌دهد که نه تنها با NPC مهم برای دریافت پاداش‌ها و باز کردن قفل‌ها معاشرت کنند، بلکه دختران را در تاریخ‌ها نیز می‌برند تا به نیکو کمک کنند تا تسویه حساب کنند. حالت چند نفره به حداکثر 32 بازیکن اجازه می دهد تا کپی شهر تک نفره را کاوش کنند و فعالیت های چند نفره مانند مسابقه یا مسابقات مرگ را آغاز کنند."
   }
 ]

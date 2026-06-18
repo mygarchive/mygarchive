@@ -147,7 +147,6 @@ export default function Home() {
             </p>
           </div>
 
-          {/* ارتباط با من (تلگرام و بله) در بالای صفحه اصلی */}
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <div className="flex items-center gap-4 text-xs font-bold">
               <a href="https://t.me/HF273" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-sky-400 transition" style={{ color: themeStyles.subText }}>
@@ -160,7 +159,6 @@ export default function Home() {
               </a>
             </div>
 
-            {/* اسلایدر دکمه‌ای هوشمند و متحرک حالت روز و شب به همراه آیکون لایو */}
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold" style={{ color: themeStyles.subText }}>
                 {darkMode ? 'تم تاریک' : 'تم روشن'}
@@ -178,6 +176,7 @@ export default function Home() {
                 </div>
               </button>
             </div>
+          </div>
         </header>
 
         <div 
@@ -276,11 +275,11 @@ export default function Home() {
         style={{ backgroundColor: themeStyles.footerBg, borderColor: themeStyles.border }}
       >
         <p className="text-xs leading-6" style={{ color: themeStyles.subText }}>
-          ⚖️ <span className="font-bold text-amber-600">سلب مسئولیت حقوقی:</span> .تمامی اطلاعات، تصاویر و محتوای درج شده در این وب‌سایت از منابع خارجی دریافت شده و به صورت کاملاً اتوماتیک جمع‌آوری می‌شوند. صاحب سایت هیچ‌گونه مسئولیتی در قبال صحت، دقت و محتوای اطلاعات و عکس‌ها بر عهده ندارد. تمامی حقوق مادی و معنوی مربوط به محتوای بازی‌ها، متعلق به سازندگان و ناشران اصلی آن‌ها می‌باشد
+          ⚖️ <span className="font-bold text-amber-600">سلب مسئولیت حقوقی:</span> تمامی اطلاعات، تصاویر و محتوای درج شده در این وب‌سایت از منابع خارجی دریافت شده و به صورت کاملاً اتوماتیک جمع‌آوری می‌شوند. صاحب سایت هیچ‌گونه مسئولیتی در قبال صحت، دقت و محتوای اطلاعات و عکس‌ها بر عهده ندارد. تمامی حقوق مادی و معنوی مربوط به محتوای بازی‌ها، متعلق به سازندگان و ناشران اصلی آن‌ها می‌باشد.
         </p>
         <div className="flex justify-center items-center pt-3 text-xs border-t" style={{ borderColor: darkMode ? '#020617' : '#f1f5f9' }}>
           <div className="font-mono" style={{ color: themeStyles.subText }}>
-            توسعه‌یافته با 💜 توسط <a href="https://gemini.google.com" target="_blank" rel="noopener noreferrer" className="text-purple-500 font-bold hover:underline">هوش مصنوعی</a>
+            توسعه‌یافته با 💜 توسط <a href="https://gemini.google.com" target="_blank" rel="noopener noreferrer" className="text-purple-500 font-bold hover:underline">gemini</a>
           </div>
         </div>
       </footer>

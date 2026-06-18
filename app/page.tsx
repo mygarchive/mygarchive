@@ -59,7 +59,7 @@ export default function Home() {
       setGenres(allGenres.sort());
       setLoading(false);
     } catch (err) {
-      console.error("خطا در پردازش هوشمند دیتابیس بازی‌ها:", err);
+      console.error("خطا در پردازش دیتابیس بازی‌ها:", err);
       if (Array.isArray(localGamesData)) {
         setGames(localGamesData);
         setFilteredGames(localGamesData);
@@ -91,7 +91,7 @@ export default function Home() {
     } else if (sortBy === 'released') {
       result.sort((a, b) => {
         const dateA = a.released ? new Date(a.released).getTime() : 0;
-        const dateB = b.released ? new Date(b.released).getTime() : 0;
+        const dateB = b.released ? new Date(a.released).getTime() : 0;
         return dateB - dateA;
       });
     } else if (sortBy === 'rating') {
@@ -147,16 +147,16 @@ export default function Home() {
             </p>
           </div>
 
-          {/* بخش ارتباط با من در بالای سایت */}
+          {/* ارتباط با من (تلگرام و بله) در بالای صفحه اصلی */}
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <div className="flex items-center gap-4 text-xs font-bold">
               <a href="https://t.me/HF273" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-sky-400 transition" style={{ color: themeStyles.subText }}>
                 <svg className="w-5 h-5 fill-current text-sky-400" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-1-.65-.35-1 .22-1.62.15-.15 2.7-2.48 2.75-2.7.01-.03.01-.14-.06-.2-.07-.06-.17-.04-.25-.02-.11.02-1.83 1.16-5.16 3.42-.49.34-.93.51-1.33.5-.44-.01-1.3-.25-1.93-.46-.78-.25-1.4-.39-1.35-.83.03-.23.35-.47.96-.71 3.76-1.64 6.27-2.72 7.54-3.25 3.59-1.48 4.34-1.74 4.83-1.75.11 0 .35.03.5.16.13.11.17.26.18.37z"/></svg>
-                ارتباط در تلگرام: HF273@
+                تلگرام: HF273@
               </a>
               <a href="https://bale.ai/invite/HF273" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-green-500 transition" style={{ color: themeStyles.subText }}>
                 <span className="w-5 h-5 rounded-full bg-green-500 text-white flex items-center justify-center font-mono text-[10px]">B</span>
-                ارتباط در بله: HF273@
+                بله: HF273@
               </a>
             </div>
 
@@ -273,7 +273,7 @@ export default function Home() {
         style={{ backgroundColor: themeStyles.footerBg, borderColor: themeStyles.border }}
       >
         <p className="text-xs leading-6" style={{ color: themeStyles.subText }}>
-          ⚖️ <span className="font-bold text-amber-600">سلب مسئولیت حقوقی:</span> تمامی اطلاعات، تصاویر و محتوای درج شده در این وب‌سایت از منابع مختلف خارجی دریافت شده و به صورت کاملاً اتوماتیک جمع‌آوری می‌شوند. صاحب سایت هیچ‌گونه مسئولیتی در قبال صحت، دقت و محتوای اطلاعات و عکس‌ها بر عهده ندارد. تمامی حقوق مادی و معنوی بازی‌ها متعلق به سازندگان و ناشران اصلی آن‌ها می‌باشد.
+          ⚖️ <span className="font-bold text-amber-600">سلب مسئولیت حقوقی:</span> تمامی اطلاعات، تصاویر و محتوای درج شده در این وب‌سایت از منابع مختلف خارجی دریافت شده و به صورت کاملاً اتوماتیک جمع‌آوری می‌شوند. صاحب سایت هیچ‌گونه مسئولیتی در قبال صحت، دقت و محتوای اطلاعات و عکس‌ها بر عهده ندارد. تمامی حقوق مادی و معنوی مربوط به محتوای بازی‌ها، متعلق به سازندگان و ناشران اصلی آن‌ها می‌باشد. منبع ذخیره‌سازی این اطلاعات در فایل `data/games.json` قرار دارد.
         </p>
         <div className="flex justify-center items-center pt-3 text-xs border-t" style={{ borderColor: darkMode ? '#020617' : '#f1f5f9' }}>
           <div className="font-mono" style={{ color: themeStyles.subText }}>

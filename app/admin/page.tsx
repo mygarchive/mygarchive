@@ -230,19 +230,60 @@ export default function AdminPanel() {
         else if (rawEsrb === 'everyone-10-plus') finalAge = '+10';
         else if (rawEsrb === 'everyone') finalAge = 'همه سنین';
 
-        // اصلاحیه استخراج دقیق لینک استیم
+        // ==========================================
+        // سیستم هوشمند استخراج لینک استیم (با قابلیت سرچ خودکار)
+        // ==========================================
         let steamUrl = '';
+
+        // ۱. بررسی فروشگاه‌های ثبت شده در RAWG (استخراج App ID واقعی استیم از داخل لینک)
         if (details.stores && details.stores.length > 0) {
-          const steamStore = details.stores.find((s: any) => s.store?.slug === 'steam');
+          const steamStore = details.stores.find((s: any) => s.store?.slug === 'steam' || s.store?.id === 1);
           if (steamStore && steamStore.url) {
-            const match = steamStore.url.match(/\/app\/(\d+)/);
+            const match = steamStore.url.match(/(?:app|sub)\/(\d+)/);
             if (match && match[1]) {
-              steamUrl = `https://store.steampowered.com/app/${match[1]}`;
+              steamUrl = `https://store.steampowered.com/app/${match[1]}/`; // لینک تمیز با آیدی واقعی
             } else {
-              steamUrl = steamStore.url;
+              steamUrl = steamStore.url; // ثبت لینک خام در صورت عجیب بودن فرمت
             }
           }
         }
+
+        // ۲. بررسی فیلد وب‌سایت (گاهی RAWG لینک استیم را اینجا قرار می‌دهد)
+        if (!steamUrl && details.website && details.website.includes('steampowered.com')) {
+          const match = details.website.match(/(?:app|sub)\/(\d+)/);
+          if (match && match[1]) {
+            steamUrl = `https://store.steampowered.com/app/${match[1]}/`;
+          } else {
+            steamUrl = details.website;
+          }
+        }
+
+        // ۳. دیتابیس فال‌بک (فقط برای حل باگ RAWG در بازی‌های شرکت Valve مثل دوتا ۲)
+        if (!steamUrl) {
+          const fallbackSteamLinks: { [key: string]: string } = {
+            "Dota 2": "https://store.steampowered.com/app/570/",
+            "Counter-Strike 2": "https://store.steampowered.com/app/730/",
+            "Counter-Strike: Global Offensive": "https://store.steampowered.com/app/730/",
+            "Team Fortress 2": "https://store.steampowered.com/app/440/",
+            "Portal 2": "https://store.steampowered.com/app/620/",
+            "Portal": "https://store.steampowered.com/app/400/",
+            "Left 4 Dead 2": "https://store.steampowered.com/app/550/",
+            "Half-Life 2": "https://store.steampowered.com/app/220/",
+            "Apex Legends": "https://store.steampowered.com/app/1172470/"
+          };
+          const exactName = details.name || game.name;
+          if (fallbackSteamLinks[exactName]) {
+            steamUrl = fallbackSteamLinks[exactName];
+          }
+        }
+
+        // ۴. جستجوی خودکار در استیم (تیر آخر)
+        // اگر بعد از ۳ مرحله بالا هیچ لینکی پیدا نشد، نام بازی در استیم جستجو می‌شود
+        if (!steamUrl) {
+          const exactGameName = details.name || game.name;
+          steamUrl = `https://store.steampowered.com/search/?term=${encodeURIComponent(exactGameName)}`;
+        }
+        // ==========================================
 
         // استخراج اتوماتیک ویدیوهای یوتیوب
         const autoYoutubeVideos: string[] = [];

@@ -65,14 +65,25 @@ export default function AdminPanel() {
     }
   }, []);
 
+  // سیستم چند لایه پروکسی ارتقا یافته برای دور زدن تحریم RAWG بدون نیاز به VPN
   const fetchSmartRoute = async (targetUrl: string, parseAllOrigins = false) => {
+    // لایه اول: پروکسی CodeTabs (پایداری بالا در شبکه ایران)
+    try {
+      const res = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`);
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn("پروکسی اول (CodeTabs) ناموفق بود...");
+    }
+
+    // لایه دوم: پروکسی Corsproxy.io
     try {
       const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(targetUrl)}`);
       if (res.ok) return await res.json();
     } catch (e) {
-      console.warn("پروکسی اول ناموفق بود...", e);
+      console.warn("پروکسی دوم (Corsproxy) ناموفق بود...");
     }
 
+    // لایه سوم: پروکسی AllOrigins
     try {
       const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`);
       if (res.ok) {
@@ -80,9 +91,18 @@ export default function AdminPanel() {
         return parseAllOrigins ? JSON.parse(jsonWrapper.contents) : jsonWrapper;
       }
     } catch (e) {
-      console.warn("پروکسی دوم ناموفق بود...", e);
+      console.warn("پروکسی سوم (AllOrigins) ناموفق بود...");
     }
 
+    // لایه چهارم: پروکسی ThingProxy
+    try {
+      const res = await fetch(`https://thingproxy.freeboard.io/fetch/${encodeURIComponent(targetUrl)}`);
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn("پروکسی چهارم (ThingProxy) ناموفق بود...");
+    }
+
+    // تلاش مستقیم (آخرین راه حل در صورت خاموش بودن تحریم یا فیلتر)
     const directRes = await fetch(targetUrl);
     if (directRes.ok) return await directRes.json();
     
@@ -110,7 +130,7 @@ export default function AdminPanel() {
         setLoginError('توکن وارد شده معتبر نیست یا دسترسی لازم را ندارد!');
       }
     } catch {
-      setLoginError('خطا در برقراری ارتباط با گیت‌هاب.');
+      setLoginError('خطا در برانتشار با گیت‌هاب.');
     }
     setLoading(false);
   };
@@ -156,7 +176,7 @@ export default function AdminPanel() {
       setSearchResults(data.results || []);
     } catch (err) { 
       console.error("خطای سیستم جستجو:", err); 
-      setMessage({ text: 'خطا در برقراری ارتباط با سرور RAWG.', isError: true });
+      setMessage({ text: 'خطا در برقراری ارتباط با سرور RAWG (تمامی پروکسی‌ها مسدود هستند).', isError: true });
     }
     setLoading(false);
   };

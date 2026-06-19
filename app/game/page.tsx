@@ -374,7 +374,7 @@ function GameDetailContent() {
         </p>
       </footer>
 
-      {activePhotoModalRender(activePhotoIndex, game, setActivePhotoIndex, handleTouchMoveHandler, TouchStartHandler, TouchEndHandler)}
+      {PhotoModalRender(activePhotoIndex, game, setActivePhotoIndex, handleTouchMoveHandler, TouchStartHandler, TouchEndHandler)}
     </div>
   );
 }

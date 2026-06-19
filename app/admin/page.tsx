@@ -13,7 +13,7 @@ interface QueueTask {
   game: any;
   gameId?: number;
   gameName?: string;
-  overrideData?: any; // برای اعمال ویرایش دستی
+  overrideData?: any; 
 }
 
 async function translateToPersian(text: string): Promise<string> {
@@ -42,6 +42,20 @@ export default function AdminPanel() {
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
 
   const getOptimizedUrl = (url: string, width = 400) => url ? `https://images.weserv.nl/?url=${encodeURIComponent(url.replace(/^https?:\/\//i, ''))}&w=${width}&q=80` : '';
+
+  // تابع جستجوی هوشمند آیدی استیم از API استیم
+  const getSteamIdFromSteam = async (gameName: string): Promise<string | null> => {
+    try {
+      const searchUrl = `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(gameName)}&l=english&cc=US`;
+      const data = await fetchSmartRoute(searchUrl, true);
+      if (data && data.items && data.items.length > 0) {
+        return data.items[0].id;
+      }
+    } catch (e) {
+      console.error("خطا در جستجوی استیم:", e);
+    }
+    return null;
+  };
 
   useEffect(() => {
     const savedToken = localStorage.getItem('gh_token');
@@ -157,16 +171,28 @@ export default function AdminPanel() {
     setMessage({ text: `درخواست به‌روزرسانی/فیکس "${game.name}" به صف اضافه شد.`, isError: false });
   };
 
-  const handleEditGame = (game: any) => {
-    const newSteamLink = window.prompt("لینک استیم جدید را برای این بازی وارد کنید:", game.steam_link || "");
-    if (newSteamLink === null) return;
+  const handleEditGame = async (game: any) => {
+    const choice = window.confirm("آیا می‌خواهید آیدی استیم را به صورت خودکار جستجو کنم؟ (Cancel برای ورود دستی)");
+    let newSteamLink = "";
 
-    const overrideData = {
-      steam_link: newSteamLink.trim()
-    };
+    if (choice) {
+      setMessage({ text: `⏳ در حال جستجوی خودکار آیدی برای "${game.name}"...`, isError: false });
+      const steamId = await getSteamIdFromSteam(game.name);
+      if (steamId) {
+        newSteamLink = `https://store.steampowered.com/app/${steamId}/`;
+      } else {
+        alert("متاسفانه آیدی پیدا نشد. لطفاً لینک را دستی وارد کنید.");
+        return;
+      }
+    } else {
+      const manualInput = window.prompt("لینک استیم را وارد کنید:", game.steam_link || "");
+      if (manualInput === null) return;
+      newSteamLink = manualInput;
+    }
 
+    const overrideData = { steam_link: newSteamLink.trim() };
     setQueue((prev) => [...prev, { type: 'UPDATE', game, overrideData }]);
-    setMessage({ text: `درخواست اصلاح اطلاعات بازی "${game.name}" به صف اضافه شد.`, isError: false });
+    setMessage({ text: `درخواست اصلاح لینک "${game.name}" ثبت شد.`, isError: false });
   };
 
   const handleRemoveGame = (gameId: number, gameName: string) => {
@@ -175,7 +201,6 @@ export default function AdminPanel() {
     setMessage({ text: `درخواست حذف "${gameName}" به صف اضافه شد.`, isError: false });
   };
 
-  // --- اصلاح شده با useCallback ---
   const processNextQueueTask = useCallback(async () => {
     if (queue.length === 0) return;
 
@@ -208,7 +233,6 @@ export default function AdminPanel() {
         ]);
         
         const rawDescriptionFa = await translateToPersian((details.description_raw || "").substring(0, 1500));
-        // اصلاح متغیر در خط زیر (rawFa به rawDescriptionFa تغییر یافت)
         const descriptionFaWithLabel = `توضیحات بازی (ترجمه ماشینی و خودکار):\n${rawDescriptionFa}`;
         
         let minReq = '';
@@ -242,72 +266,28 @@ export default function AdminPanel() {
 
         const metacriticScore = details.metacritic || null;
 
-        console.log("========== RAWG DEBUG ==========");
-console.log("GAME NAME:", details.name);
-console.log("GAME ID:", details.id);
-console.log("STORES:", details.stores);
-console.log("WEBSITE:", details.website);
-console.log("FULL DETAILS:", details);
-console.log("================================");
-
-let steamUrl = '';
-
-if (details.stores && details.stores.length > 0) {
-
-  const steamStore = details.stores.find(
-    (s: any) =>
-      s.store?.slug === 'steam' ||
-      s.store?.id === 1
-  );
-
-  console.log(
-  "STEAM STORE FULL:",
-  JSON.stringify(steamStore, null, 2)
-);
-  console.log(
-  "STEAM STORE FULL:",
-  JSON.stringify(steamStore, null, 2)
-);
-
-  if (steamStore) {
-    console.log("STEAM STORE KEYS:", Object.keys(steamStore));
-
-    if (steamStore.url) {
-      console.log("STEAM URL FIELD:", steamStore.url);
-
-      const match = steamStore.url.match(/(?:app|sub)\/(\d+)/);
-
-      steamUrl = match?.[1]
-        ? `https://store.steampowered.com/app/${match[1]}/`
-        : steamStore.url;
-    }
-  }
-}
-
-if (!steamUrl && details.website) {
-
-  console.log("CHECKING WEBSITE FIELD:", details.website);
-
-  if (details.website.includes('steampowered.com')) {
-
-    const match = details.website.match(/(?:app|sub)\/(\d+)/);
-
-    steamUrl = match?.[1]
-      ? `https://store.steampowered.com/app/${match[1]}/`
-      : details.website;
-  }
-}
-
-console.log("FINAL STEAM URL:", steamUrl);
-
-if (!steamUrl) {
-
-  const exact = details.name || game.name;
-
-  steamUrl = `https://store.steampowered.com/search/?term=${encodeURIComponent(exact)}`;
-
-  console.log("FALLBACK SEARCH URL:", steamUrl);
-}
+        // منطق جدید استیم
+        let steamUrl = '';
+        const steamId = await getSteamIdFromSteam(game.name);
+        
+        if (steamId) {
+            steamUrl = `https://store.steampowered.com/app/${steamId}/`;
+        } else if (details.stores && details.stores.length > 0) {
+          const steamStore = details.stores.find((s: any) => s.store?.slug === 'steam' || s.store?.id === 1);
+          if (steamStore && steamStore.url) {
+            const match = steamStore.url.match(/(?:app|sub)\/(\d+)/);
+            steamUrl = match && match[1] ? `https://store.steampowered.com/app/${match[1]}/` : steamStore.url;
+          }
+        }
+        
+        if (!steamUrl && details.website && details.website.includes('steampowered.com')) {
+          const match = details.website.match(/(?:app|sub)\/(\d+)/);
+          steamUrl = match && match[1] ? `https://store.steampowered.com/app/${match[1]}/` : details.website;
+        }
+        
+        if (!steamUrl) {
+           steamUrl = `https://store.steampowered.com/search/?term=${encodeURIComponent(game.name)}`;
+        }
 
         const autoYoutube: string[] = [];
         if (youtubeData?.results?.length > 0) {
@@ -421,9 +401,8 @@ if (!steamUrl) {
       setQueue((prev) => prev.slice(1));
       setIsProcessingQueue(false);
     }
-  }, [githubToken, myGames, fileSha, queue]); // وابستگی‌ها اصلاح شد
+  }, [githubToken, myGames, fileSha, queue]);
 
-  // اصلاح این بخش برای استفاده از تابع بهینه‌شده
   useEffect(() => {
     if (queue.length > 0 && !isProcessingQueue) {
       processNextQueueTask();

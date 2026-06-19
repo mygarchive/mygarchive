@@ -529,5 +529,61 @@
     },
     "description_en": "Cyberpunk 2077 is a science fiction game loosely based on the role-playing game Cyberpunk 2020.\r\n\r\n###Setting\r\nThe game is set in the year 2077 in a fictional futuristic metropolis Night City in California. In the world of the game, there are developed cybernetic augmentations that enhance people's strength, agility, and memory. The city is governed by corporations. Many jobs are taken over by the robots, leaving a lot of people poor and homeless. Night City has a roaring underworld, with black markets, underground surgeons, drug dealers, and street gangs abound.\r\n\r\n###Characters\r\nThe main protagonist is fully customizable, including his or her sex and appearance, and goes by the nickname V. He or she is an underground mercenary who does “dirty business” for the various contractors. An NPC companion named Jackie joins the protagonist early at the game, and various other companions may join the player on certain missions as the plot demands. However, the game has no parties and no companion system.\r\n\r\n###Gameplay\r\nThe player controls V from the first person view, with the third-person view used for cutscenes only. The protagonist can travel across the city on feet or using various vehicles, in a manner some observers compared to GTA series. There are many options for the character customization, including three character classes, and a variety of augmentations V can install to enhance his or her abilities.",
     "description_fa": "توضیحات بازی (ترجمه ماشینی و خودکار):\nCyberpunk 2077 یک بازی علمی تخیلی است که بر اساس بازی نقش آفرینی Cyberpunk 2020 ساخته شده است.\r\n\r\n###تنظیم\r\nداستان بازی در سال 2077 در یک کلان شهر خیالی آینده نگر در شهر شب در کالیفرنیا اتفاق می افتد. در دنیای بازی، تقویت‌کننده‌های سایبرنتیک توسعه‌یافته وجود دارد که قدرت، چابکی و حافظه افراد را افزایش می‌دهد. این شهر توسط شرکت ها اداره می شود. بسیاری از مشاغل توسط ربات ها تصاحب می شود و بسیاری از مردم فقیر و بی خانمان باقی می مانند. شهر شب دارای عالم اموات خروشان است که بازارهای سیاه، جراحان زیرزمینی، فروشندگان مواد مخدر و باندهای خیابانی فراوان است.\r\n\r\n###شخصیت ها\r\nقهرمان اصلی کاملاً قابل تنظیم است، از جمله جنسیت و ظاهرش، و با نام مستعار V. او یک مزدور زیرزمینی است که برای پیمانکاران مختلف \"تجارت کثیف\" انجام می دهد. یکی از همراهان NPC به نام جکی در اوایل بازی به قهرمان داستان می‌پیوندد و همراهان مختلف دیگری ممکن است در مأموریت‌های خاصی به بازیکن ملحق شوند. با این حال، بازی هیچ حزب و سیستم همراهی ندارد.\r\n\r\n###بازی\r\nبازیکن V را از دید اول شخص کنترل می کند و از نمای سوم شخص فقط برای کات سین ها استفاده می شود. قهرمان می تواند با پای پیاده یا با استفاده از وسایل نقلیه مختلف در سراسر شهر سفر کند، به شیوه ای که برخی ناظران با سری GTA مقایسه می کنند. گزینه‌های زیادی برای سفارشی‌سازی کاراکتر وجود دارد، از جمله سه کلاس کاراکتر، و انواع تقویت‌کننده‌هایی که V می‌تواند برای افزایش توانایی‌های خود نصب کند."
+  },
+  {
+    "id": 1030,
+    "name": "Limbo",
+    "background_image": "https://media.rawg.io/media/games/942/9424d6bb763dc38d9378b488603c87fa.jpg",
+    "rating": 4.14,
+    "metacritic": 88,
+    "released": "2010-07-21",
+    "genres": [
+      {
+        "id": 3,
+        "name": "Adventure",
+        "slug": "adventure"
+      },
+      {
+        "id": 4,
+        "name": "Action",
+        "slug": "action"
+      },
+      {
+        "id": 7,
+        "name": "Puzzle",
+        "slug": "puzzle"
+      },
+      {
+        "id": 51,
+        "name": "Indie",
+        "slug": "indie"
+      },
+      {
+        "id": 83,
+        "name": "Platformer",
+        "slug": "platformer"
+      }
+    ],
+    "esrb_rating": "+13",
+    "playtime": 3,
+    "developers": "Double Eleven, Playdead, 鱼俞",
+    "steam_link": "https://store.steampowered.com/search/?term=Limbo",
+    "trailer_url": "",
+    "youtube_videos": [],
+    "gallery": [
+      "https://media.rawg.io/media/screenshots/512/512f4bc2092016478ddcb9e7e60aeec0.jpg",
+      "https://media.rawg.io/media/screenshots/63d/63d30699e8fcab9c808e6714d9d3fd59.jpg",
+      "https://media.rawg.io/media/screenshots/de0/de04bbc0fd9904071ef25bf23113c8c4.jpg",
+      "https://media.rawg.io/media/screenshots/eed/eedbbca4ae2debf2d4e23e55d1f6cff7.jpg",
+      "https://media.rawg.io/media/screenshots/59f/59f472b3ed7b414777a29213d70b4d17.jpg",
+      "https://media.rawg.io/media/screenshots/e58/e58d31146e4a9e3786dabcbfc30126bc.jpg",
+      "https://media.rawg.io/media/games/942/9424d6bb763dc38d9378b488603c87fa.jpg"
+    ],
+    "requirements": {
+      "minimum": "OS *: Windows 7(SP1+) and above\nProcessor: x64 or x86\nMemory: 4 GB RAM\nDirectX: Version 10\nStorage: 600 MB available space",
+      "recommended": "مشخصات سیستم پیشنهادی ثبت نشده است."
+    },
+    "description_en": "This popular 2D puzzle-platformer creates the atmosphere of isolation, where the player alone can guide the nameless protagonist to his destination. Hostile environments and one-hit deaths may seem difficult, but the game implements a fair amount of checkpoints. The monochrome color palette showcases cartoony proportions of every living thing while making lack of details threatening. Limbo shows you exactly what you encounter, but never how it looks.\n\nLimbo uses the atmosphere and sound design of the horror genre while avoiding tropes of the modern horror games. The overarching theme and unique style compensated for the rather short game with an abrupt ending, making Limbo one of the most impactful games for the genre.\n\nThe simple controls and easy-to-pick-up mechanics help to make a clear distinction, which part of the stage players can interact with, and which part can lead to the quick death. Even though the game is in black and white, this separation is intuitive and natural, so the player would know exactly where to go or what to do.",
+    "description_fa": "توضیحات بازی (ترجمه ماشینی و خودکار):\nاین پلتفرم‌ساز معمایی دوبعدی محبوب، فضای انزوا را ایجاد می‌کند، جایی که بازیکن به تنهایی می‌تواند قهرمان بی‌نام را به مقصدش هدایت کند. محیط‌های خصمانه و مرگ‌های یک‌باره ممکن است دشوار به نظر برسند، اما بازی دارای تعداد قابل توجهی از نقاط بازرسی است. پالت رنگ تک رنگ نسبت های کارتونی هر موجود زنده را به نمایش می گذارد و در عین حال کمبود جزئیات را تهدید کننده می کند. Limbo دقیقاً به شما نشان می دهد که با چه چیزی روبرو می شوید، اما هرگز چگونه به نظر می رسد.\n\nLimbo از اتمسفر و طراحی صدای ژانر وحشت استفاده می کند و در عین حال از بازی های ترسناک مدرن دوری می کند. تم فراگیر و سبک منحصر به فرد، بازی نسبتاً کوتاه با پایانی ناگهانی را جبران کرد و Limbo را به یکی از تأثیرگذارترین بازی‌های این سبک تبدیل کرد.\n\nکنترل‌های ساده و مکانیک‌های آسان برای برداشتن به شما کمک می‌کند تا تمایز واضحی ایجاد کنید، کدام بخش از صحنه می‌تواند با آن تعامل داشته باشد و کدام بخش می‌تواند منجر به مرگ سریع شود. حتی اگر بازی سیاه و سفید است، این جداسازی بصری و طبیعی است، بنابراین بازیکن دقیقا می‌داند کجا برود یا چه کاری انجام دهد."
   }
 ]

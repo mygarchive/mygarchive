@@ -378,7 +378,7 @@ export default function AdminPanel() {
       setQueue((prev) => prev.slice(1));
       setIsProcessingQueue(false);
     }
-  }, [githubToken, myGames, fileSha, queue, isProcessingQueue]); // وابستگی‌ها اصلاح شد
+  }, [githubToken, myGames, fileSha, queue]); // وابستگی‌ها اصلاح شد
 
   // اصلاح این بخش برای استفاده از تابع بهینه‌شده
   useEffect(() => {

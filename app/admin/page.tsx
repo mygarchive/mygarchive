@@ -242,29 +242,65 @@ export default function AdminPanel() {
 
         const metacriticScore = details.metacritic || null;
 
-        let steamUrl = '';
-        if (details.stores && details.stores.length > 0) {
-          const steamStore = details.stores.find((s: any) => s.store?.slug === 'steam' || s.store?.id === 1);
-          if (steamStore && steamStore.url) {
-            const match = steamStore.url.match(/(?:app|sub)\/(\d+)/);
-            steamUrl = match && match[1] ? `https://store.steampowered.com/app/${match[1]}/` : steamStore.url;
-          }
-        }
-        if (!steamUrl && details.website && details.website.includes('steampowered.com')) {
-          const match = details.website.match(/(?:app|sub)\/(\d+)/);
-          steamUrl = match && match[1] ? `https://store.steampowered.com/app/${match[1]}/` : details.website;
-        }
-        if (!steamUrl) {
-          const fallbackList: { [key: string]: string } = {
-            "Dota 2": "https://store.steampowered.com/app/570/",
-            "Counter-Strike 2": "https://store.steampowered.com/app/730/",
-            "Team Fortress 2": "https://store.steampowered.com/app/440/",
-            "Portal 2": "https://store.steampowered.com/app/620/",
-            "Left 4 Dead 2": "https://store.steampowered.com/app/550/"
-          };
-          const exact = details.name || game.name;
-          steamUrl = fallbackList[exact] || `https://store.steampowered.com/search/?term=${encodeURIComponent(exact)}`;
-        }
+        console.log("========== RAWG DEBUG ==========");
+console.log("GAME NAME:", details.name);
+console.log("GAME ID:", details.id);
+console.log("STORES:", details.stores);
+console.log("WEBSITE:", details.website);
+console.log("FULL DETAILS:", details);
+console.log("================================");
+
+let steamUrl = '';
+
+if (details.stores && details.stores.length > 0) {
+
+  const steamStore = details.stores.find(
+    (s: any) =>
+      s.store?.slug === 'steam' ||
+      s.store?.id === 1
+  );
+
+  console.log("STEAM STORE FOUND:", steamStore);
+
+  if (steamStore) {
+    console.log("STEAM STORE KEYS:", Object.keys(steamStore));
+
+    if (steamStore.url) {
+      console.log("STEAM URL FIELD:", steamStore.url);
+
+      const match = steamStore.url.match(/(?:app|sub)\/(\d+)/);
+
+      steamUrl = match?.[1]
+        ? `https://store.steampowered.com/app/${match[1]}/`
+        : steamStore.url;
+    }
+  }
+}
+
+if (!steamUrl && details.website) {
+
+  console.log("CHECKING WEBSITE FIELD:", details.website);
+
+  if (details.website.includes('steampowered.com')) {
+
+    const match = details.website.match(/(?:app|sub)\/(\d+)/);
+
+    steamUrl = match?.[1]
+      ? `https://store.steampowered.com/app/${match[1]}/`
+      : details.website;
+  }
+}
+
+console.log("FINAL STEAM URL:", steamUrl);
+
+if (!steamUrl) {
+
+  const exact = details.name || game.name;
+
+  steamUrl = `https://store.steampowered.com/search/?term=${encodeURIComponent(exact)}`;
+
+  console.log("FALLBACK SEARCH URL:", steamUrl);
+}
 
         const autoYoutube: string[] = [];
         if (youtubeData?.results?.length > 0) {

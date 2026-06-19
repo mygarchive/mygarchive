@@ -41,7 +41,11 @@ export default function AdminPanel() {
   const [queue, setQueue] = useState<QueueTask[]>([]);
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
 
-  const getOptimizedUrl = (url: string, width = 400) => url ? `https://images.weserv.nl/?url=${encodeURIComponent(url.replace(/^https?:\/\//i, ''))}&w=${width}&q=80` : '';
+  const getOptimizedUrl = (url: string, width = 400) => {
+    if (!url) return '';
+    const cleanUrl = url.replace(/^https?:\/\//i, '');
+    return `https://images.weserv.nl/?url=${encodeURIComponent(cleanUrl)}&w=${width}&q=80`;
+  };
 
   // تابع جستجوی هوشمند آیدی استیم از API استیم
   const getSteamIdFromSteam = async (gameName: string): Promise<string | null> => {
@@ -515,7 +519,16 @@ export default function AdminPanel() {
               
               return (
                 <div key={game.id} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden flex flex-col justify-between shadow-lg">
-                  <img src={getOptimizedUrl(game.background_image, 400)} alt={game.name} className="w-full h-40 object-cover" />
+                  <img 
+                    src={getOptimizedUrl(game.background_image, 400)} 
+                    alt={game.name} 
+                    // 🔥 چتر نجات تصاویر: اگر به هر دلیلی عکس لود نشد، سوئیچ روی ورکر کلادفلر شما
+                    onError={(e) => {
+                      e.currentTarget.onerror = null; // جلوگیری از افتادن در لوپ بی‌نهایت
+                      e.currentTarget.src = `https://rawg-proxy.hossein-hf273.workers.dev/?url=${encodeURIComponent(game.background_image)}`;
+                    }}
+                    className="w-full h-40 object-cover" 
+                  />
                   <div className="p-4 flex flex-col justify-between flex-1 space-y-4">
                     <h3 className="font-bold text-sm text-white text-left truncate" dir="ltr">{game.name}</h3>
                     

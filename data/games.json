@@ -1,625 +1,504 @@
-[
-  {
-    "id": 58758,
-    "name": "Dying Light 2 Stay Human",
-    "background_image": "https://media.rawg.io/media/games/73d/73db43df633477d4604c7248292f34b2.jpg",
-    "rating": 3.64,
-    "released": "2022-02-04",
-    "genres": [
-      {
-        "id": 3,
-        "name": "Adventure",
-        "slug": "adventure"
-      },
-      {
-        "id": 4,
-        "name": "Action",
-        "slug": "action"
-      },
-      {
-        "id": 5,
-        "name": "RPG",
-        "slug": "role-playing-games-rpg"
+/* eslint-disable @next/next/no-img-element */
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
+
+const GITHUB_OWNER = 'mygarchive'; 
+const GITHUB_REPO = 'mygarchive.github.io'; 
+const RAWG_API_KEY = '8ceb3ebba03c4ddca51106af23868263';
+
+interface QueueTask {
+  type: 'ADD' | 'REMOVE' | 'UPDATE';
+  game: any;
+  gameId?: number;
+  gameName?: string;
+  overrideData?: any; // برای اعمال ویرایش دستی
+}
+
+async function translateToPersian(text: string): Promise<string> {
+  try {
+    const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=fa&dt=t&q=${encodeURIComponent(text)}`);
+    return res.ok ? (await res.json())[0].map((item: any) => item[0]).join('') : 'ترجمه خودکار با خطا مواجه شد.';
+  } catch { return 'خطا در ارتباط با سرور ترجمه.'; }
+}
+
+const safeBtoa = (str: string) => btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(parseInt(p1, 16))));
+const safeAtob = (str: string) => decodeURIComponent(atob(str).split('').map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+
+export default function AdminPanel() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loginError, setLoginError] = useState('');
+  const [githubToken, setGithubToken] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [myGames, setMyGames] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ text: '', isError: false });
+  const [fileSha, setFileSha] = useState('');
+  const [viewMode, setViewMode] = useState<'SEARCH' | 'ARCHIVE'>('SEARCH');
+
+  const [queue, setQueue] = useState<QueueTask[]>([]);
+  const [isProcessingQueue, setIsProcessingQueue] = useState(false);
+
+  const getOptimizedUrl = (url: string, width = 400) => url ? `https://images.weserv.nl/?url=${encodeURIComponent(url.replace(/^https?:\/\//i, ''))}&w=${width}&q=80` : '';
+
+  useEffect(() => {
+    const savedToken = localStorage.getItem('gh_token');
+    if (localStorage.getItem('isAdmin') === 'true' && savedToken) {
+      setGithubToken(savedToken);
+      fetchMyGames(savedToken);
+    }
+  }, []);
+
+  const fetchSmartRoute = async (targetUrl: string, parseAllOrigins = false) => {
+    try {
+      const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(targetUrl)}`);
+      if (res.ok) return await res.json();
+    } catch (e) {
+      console.warn("پروکسی اول ناموفق بود...", e);
+    }
+
+    try {
+      const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`);
+      if (res.ok) {
+        const jsonWrapper = await res.json();
+        return parseAllOrigins ? JSON.parse(jsonWrapper.contents) : jsonWrapper;
       }
-    ],
-    "esrb_rating": "---",
-    "playtime": 23,
-    "developers": "Techland",
-    "steam_link": "https://store.steampowered.com/search/?term=Dying%20Light%202%20Stay%20Human",
-    "trailer_url": "",
-    "gallery": [
-      "https://media.rawg.io/media/screenshots/a6c/a6cd4af9ecd1ea130a311282356ddb6d.jpg",
-      "https://media.rawg.io/media/screenshots/7a3/7a38cd42c25abb2a360248af3585188a.jpg",
-      "https://media.rawg.io/media/screenshots/a79/a79aeabc63bd59054ad43315cd6a0cb5.jpg",
-      "https://media.rawg.io/media/screenshots/a4f/a4f3717dbbacf77a20588a639c4c9859.jpg",
-      "https://media.rawg.io/media/screenshots/48e/48e3a39421c945b36f56671b03c5ffa7.jpg",
-      "https://media.rawg.io/media/screenshots/45e/45e9e52b9a45e54d25e11d7c5cec1c13.jpg"
-    ],
-    "requirements": {
-      "minimum": "Requires a 64-bit processor and operating system\nOS: TBC\nProcessor: TBC\nGraphics: TBC\nSound Card: TBC",
-      "recommended": "Requires a 64-bit processor and operating system\nOS: TBC\nProcessor: TBC\nGraphics: TBC\nSound Card: TBC"
-    },
-    "description_en": "Dying Light 2 brings to life a unique post-apocalyptic vision of the Modern Dark Ages - a brutal, bleak and unforgiving reality where you are as likely to perish at the hand of a human as you are by the infected. \r\n\r\nIn this exhausted world, your quick thinking, exceptional parkour abilities and brutal combat skills are the only things that let you dive into darkness and emerge alive. Make morally grey decisions and witness how they impact the world at multiple levels, shape the transformation of the City, and ultimately decide its fate.",
-    "description_fa": "Dying Light 2 یک چشم انداز منحصر به فرد پسا آخرالزمانی از عصر تاریک مدرن را زنده می کند - یک واقعیت وحشیانه، تاریک و نابخشودنی که در آن به همان اندازه احتمال دارد که توسط افراد آلوده به دست یک انسان از بین برید. \r\n\r\nدر این دنیای خسته، تفکر سریع، توانایی‌های استثنایی پارکور و مهارت‌های جنگی وحشیانه تنها چیزهایی هستند که به شما اجازه می‌دهند در تاریکی شیرجه بزنید و زنده بیرون بیایید. از نظر اخلاقی تصمیمات خاکستری بگیرید و شاهد باشید که چگونه بر جهان در سطوح مختلف تأثیر می گذارد، تغییر شهر را شکل می دهد و در نهایت سرنوشت آن را تعیین می کند."
-  },
-  {
-    "id": 987516,
-    "name": "Dying Light: The Beast",
-    "background_image": "https://media.rawg.io/media/games/b20/b2055f1b6d12a6342deec3565e465852.jpg",
-    "rating": 3.88,
-    "released": "2025-09-18",
-    "genres": [
-      {
-        "id": 2,
-        "name": "Shooter",
-        "slug": "shooter"
-      },
-      {
-        "id": 3,
-        "name": "Adventure",
-        "slug": "adventure"
-      },
-      {
-        "id": 4,
-        "name": "Action",
-        "slug": "action"
-      },
-      {
-        "id": 5,
-        "name": "RPG",
-        "slug": "role-playing-games-rpg"
+    } catch (e) {
+      console.warn("پروکسی دوم ناموفق بود...", e);
+    }
+
+    const directRes = await fetch(targetUrl);
+    if (directRes.ok) return await directRes.json();
+    
+    throw new Error("تمامی مسیرهای ارتباطی با سرور بازی‌ها با خطا مواجه شدند.");
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError('');
+    const trimmedToken = githubToken.trim();
+    if (!trimmedToken.startsWith('ghp_') && !trimmedToken.startsWith('github_pat_')) {
+      return setLoginError('لطفاً یک توکن معتبر گیت‌هاب وارد کنید.');
+    }
+
+    setLoading(true);
+    try {
+      const checkRes = await fetch('https://api.github.com/user', {
+        headers: { 'Authorization': `token ${trimmedToken}` }
+      });
+      if (checkRes.status === 200) {
+        localStorage.setItem('isAdmin', 'true');
+        localStorage.setItem('gh_token', trimmedToken);
+        await fetchMyGames(trimmedToken);
+      } else {
+        setLoginError('توکن وارد شده معتبر نیست یا دسترسی لازم را ندارد!');
       }
-    ],
-    "esrb_rating": "---",
-    "playtime": 3,
-    "developers": "Techland",
-    "steam_link": "https://store.steampowered.com/search/?term=Dying%20Light%3A%20The%20Beast",
-    "trailer_url": "",
-    "gallery": [
-      "https://media.rawg.io/media/screenshots/e82/e827a66e7aa78cc030f21e81c305fcf9.jpg",
-      "https://media.rawg.io/media/screenshots/fec/fec137f244b09dd82ddf8fe2efb0b32e.jpg",
-      "https://media.rawg.io/media/screenshots/810/81053960d4cb53974d3a6df8f323813c.jpg",
-      "https://media.rawg.io/media/screenshots/2ae/2aee9cee1dd6587e09a8733ca4d38026.jpg",
-      "https://media.rawg.io/media/screenshots/ffa/ffadd82171ad6034b0dee5cb7b81a857.jpg",
-      "https://media.rawg.io/media/screenshots/b3c/b3c5c308b4bc23f126e47dbc9d84cba6.jpg"
-    ],
-    "requirements": {
-      "minimum": "Requires a 64-bit processor and operating system\nOS: Windows 10 or newer\nProcessor: Intel i5-13400F / AMD Ryzen 7 5800X\nMemory: 16 GB RAM\nGraphics: NVIDIA GeForce 1060 / AMD Radeon 5500 XT / Intel ARC A750\nStorage: 70 GB available space\nAdditional Notes: SSD Required",
-      "recommended": "Requires a 64-bit processor and operating system\nOS: Windows 10 or newer\nProcessor: Intel i5-13400F / AMD Ryzen 7 7700\nMemory: 16 GB RAM\nGraphics: NVIDIA GeForce RTX 3070 TI / AMD Radeon 6750 XT / Intel ARC B580\nStorage: 70 GB available space\nAdditional Notes: SSD Required"
-    },
-    "description_en": "Pre-Order BonusPre-order the Standard Edition now to get the exclusive Hero of Harran Bundle, which contains:- Ultimate Survivor Outfit\n- Harran Combat Knife (+ Upgradable Blueprint)\n- The Follower Crossbow (+ Upgradable Blueprint)\n- In Jade’s Memory Pistol (+ Upgradable Blueprint)\n- Castor Woods Patrol\nDeluxe EditionTake your Dying Light: The Beast experience to another level with the Deluxe Edition. You'll receive the Official Soundtrack, wallpapers, and the Castor Woods Prepper Bundle, as well as a detailed tourist map that highlights locations worth exploring.INCLUDES:\n– Official Soundtrack\n– Wallpaper Pack\n– Castor Woods Tourist Map\n– Castor Woods Prepper Bundle\n– Castor Woods Prepper Outfit\n– Survivalist SMG\n– Roadhog\nEditions\nAbout the GameGet ready for a unique blend of open world and action survival horror with Dying Light: The Beast.You are Kyle Crane. After being captured by the Baron and enduring his painful experiments for years, you escape. But now, a battle rages inside you: zombie DNA clashes with human, and you struggle to control the beast within. You want revenge... but first you must tame it. It's your only option.Once you enter the zombie-infested Castor Woods, every battle will be a fight for survival… especially when night falls. Play as Kyle Crane, a hero with the DNA of both man and beast. Freely switch between two playstyles and face a fierce conflict that lead to the acceptance of the monster within.\nPush the brutality of Dying Light’s combat to the",
-    "description_fa": "جایزه پیش‌سفارش را اکنون نسخه استاندارد را سفارش دهید تا قهرمان انحصاری Harran Bundle را دریافت کنید که شامل موارد زیر است: - Ultimate Survivor Outfit\n- چاقوی رزمی هاران (+ طرح اولیه قابل ارتقا)\n- کمان پولادی دنبال کننده (+ طرح اولیه قابل ارتقا)\n- In Jade's Memory Pistol (+ طرح اولیه قابل ارتقا)\n- گشت کاستور وودز\nنسخه Deluxe تجربه Dying Light: The Beast خود را با نسخه Deluxe به سطح دیگری ببرید. شما موسیقی متن رسمی، تصاویر پس زمینه، و مجموعه آماده سازی کاستور وودز، و همچنین یک نقشه توریستی دقیق را دریافت خواهید کرد که مکان هایی را که ارزش کاوش را دارند برجسته می کند. شامل:\n- موسیقی متن رسمی\n- بسته کاغذ دیواری\n– نقشه گردشگری کاستور وودز\n– بسته نرم افزاری کاستور وودز\n– لباس Prepper Castor Woods\n– Survivalist SMG\n- رودهوگ\nنسخه ها\nدرباره بازی با Dying Light: The Beast برای ترکیبی منحصر به فرد از جهان باز و ترسناک بقای اکشن آماده شوید. شما کایل کرین هستید. پس از اسیر شدن توسط بارون و تحمل آزمایش های دردناک او برای سال ها، شما فرار می کنید. اما اکنون، نبردی در درون شما جریان دارد: DNA زامبی با انسان درگیر می شود و شما برای کنترل جانور درون مبارزه می کنید. میخوای انتقام بگیری...ولی اول باید رامش کنی. این تنها گزینه شماست. هنگامی که وارد کاستور وودز پر از زامبی می شوید، هر نبردی برای بقا خواهد بود... به خصوص زمانی که شب فرا می رسد. نقش کایل کرین، قهرمانی با DNA انسان و حیوان را بازی کنید. آزادانه بین دو سبک بازی جابجا شوید و با یک درگیری شدید روبرو شوید که منجر به پذیرش هیولای درون می شود.\nوحشیانه مبارزه Dying Light را به سمت خود فشار دهید"
-  },
-  {
-    "id": 840768,
-    "name": "World of Warcraft: Dragonflight",
-    "background_image": "https://media.rawg.io/media/games/2e6/2e648d2839020bc467a46ad9e218c859.jpg",
-    "rating": 3.27,
-    "released": "2022-11-28",
-    "genres": [
-      {
-        "id": 59,
-        "name": "Massively Multiplayer",
-        "slug": "massively-multiplayer"
+    } catch {
+      setLoginError('خطا در برقراری ارتباط با گیت‌هاب.');
+    }
+    setLoading(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('isAdmin');
+    localStorage.removeItem('gh_token');
+    setIsLoggedIn(false);
+    setGithubToken('');
+    setMyGames([]);
+    setSearchResults([]);
+    setQueue([]);
+    setMessage({ text: 'با موفقیت از پنل خارج شدید.', isError: false });
+  };
+
+  const fetchMyGames = async (token: string) => {
+    try {
+      const res = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data/games.json?v=${Date.now()}`, { 
+        headers: { 'Authorization': `token ${token}` } 
+      });
+      if (res.status === 200) {
+        const data = await res.json();
+        setFileSha(data.sha);
+        const parsedGames = JSON.parse(safeAtob(data.content)) || [];
+        setMyGames(parsedGames);
+        setIsLoggedIn(true);
+        return { sha: data.sha, games: parsedGames };
       }
-    ],
-    "esrb_rating": "---",
-    "playtime": 0,
-    "developers": "---",
-    "steam_link": "https://store.steampowered.com/search/?term=World%20of%20Warcraft%3A%20Dragonflight",
-    "trailer_url": "",
-    "gallery": [
-      "https://media.rawg.io/media/screenshots/55c/55ce1ee13f9a43d253f51024bea97f38.jpeg",
-      "https://media.rawg.io/media/screenshots/7e9/7e9df3f68cb3c8164ac344b3ecc14c48.jpg",
-      "https://media.rawg.io/media/screenshots/f0a/f0a519db70a79c02fccbfb00bdda40b0.jpg",
-      "https://media.rawg.io/media/screenshots/f58/f583a9be7bf19c5687c11680fa1dc741.jpg",
-      "https://media.rawg.io/media/screenshots/26e/26eefae375ae485e46d4aa85fa8d14a7.jpg",
-      "https://media.rawg.io/media/screenshots/c76/c76fddbdeec4c9621fe80d08cc4587c6.jpg"
-    ],
-    "requirements": {
-      "minimum": "مشخصات حداقل سخت‌افزار ثبت نشده است.",
-      "recommended": "مشخصات سیستم پیشنهادی ثبت نشده است."
-    },
-    "description_en": "Following a period of calamity for the world of Azeroth, long-forgotten forces are stirring in the mythical Dragon Isles, the ancestral home of dragonkind. World of Warcraft®: Dragonflight™, the ninth expansion for Blizzard Entertainment’s acclaimed massively multiplayer online role-playing game, sends players to this fabled land and ushers in a new era of high-fantasy adventure. \n\nAs long-dormant forces begin to stir in their sacred homeland, the dragons of Azeroth—at times both allies and adversaries of the mortal races—call on the heroes of the Alliance and Horde to help reckon with the looming threats and ancient mysteries on the verge of awakening.",
-    "description_fa": "پس از یک دوره فاجعه برای دنیای آزروث، نیروهایی که مدت هاست فراموش شده اند در جزایر اسطوره ای اژدها، خانه اجدادی اژدها، در حال حرکت هستند. World of Warcraft®: Dragonflight™، نهمین بسط برای بازی نقش‌آفرینی آنلاین و چندنفره تحسین‌شده Blizzard Entertainment، بازیکنان را به این سرزمین افسانه‌ای می‌فرستد و دوره جدیدی از ماجراجویی‌های فانتزی را آغاز می‌کند. \n\nهمانطور که نیروهای مدت طولانی در میهن مقدس خود به حرکت در می آیند، اژدهایان آزروت - گاه متحدان و دشمنان نژادهای فانی - از قهرمانان اتحاد و هورد می خواهند تا با تهدیدات و اسرار باستانی که در آستانه بیداری هستند، کمک کنند."
-  },
-  {
-    "id": 799265,
-    "name": "The Last of Us Part I",
-    "background_image": "https://media.rawg.io/media/games/71d/71df9e759b2246f9769126c98ac997fc.jpg",
-    "rating": 4.67,
-    "released": "2022-09-02",
-    "genres": [
-      {
-        "id": 2,
-        "name": "Shooter",
-        "slug": "shooter"
-      },
-      {
-        "id": 3,
-        "name": "Adventure",
-        "slug": "adventure"
-      },
-      {
-        "id": 4,
-        "name": "Action",
-        "slug": "action"
+    } catch (err) { 
+      console.error(err);
+      setLoginError('خطا در واکشی اطلاعات آرشیو از گیت‌هاب.');
+    }
+    return null;
+  };
+
+  const handleSearch = async () => {
+    if (!searchQuery) return;
+    setLoading(true);
+    setViewMode('SEARCH');
+    try {
+      const targetUrl = `https://api.rawg.io/api/games?key=${RAWG_API_KEY}&search=${encodeURIComponent(searchQuery)}&page_size=24`;
+      const data = await fetchSmartRoute(targetUrl, true);
+      setSearchResults(data.results || []);
+    } catch (err) { 
+      console.error("خطای سیستم جستجو:", err); 
+      setMessage({ text: 'خطا در برقراری ارتباط با سرور RAWG.', isError: true });
+    }
+    setLoading(false);
+  };
+
+  const handleAddGame = (game: any) => {
+    setQueue((prev) => [...prev, { type: 'ADD', game }]);
+    setMessage({ text: `بازی "${game.name}" به صف پردازش گیت‌هاب اضافه شد.`, isError: false });
+  };
+
+  const handleFixGame = (game: any) => {
+    setQueue((prev) => [...prev, { type: 'ADD', game }]);
+    setMessage({ text: `درخواست به‌روزرسانی/فیکس "${game.name}" به صف اضافه شد.`, isError: false });
+  };
+
+  const handleEditGame = (game: any) => {
+    const newSteamLink = window.prompt("لینک استیم جدید را برای این بازی وارد کنید:", game.steam_link || "");
+    if (newSteamLink === null) return;
+
+    const overrideData = {
+      steam_link: newSteamLink.trim()
+    };
+
+    setQueue((prev) => [...prev, { type: 'UPDATE', game, overrideData }]);
+    setMessage({ text: `درخواست اصلاح اطلاعات بازی "${game.name}" به صف اضافه شد.`, isError: false });
+  };
+
+  const handleRemoveGame = (gameId: number, gameName: string) => {
+    if (!window.confirm(`آیا از حذف بازی "${gameName}" مطمئن هستید؟`)) return;
+    setQueue((prev) => [...prev, { type: 'REMOVE', game: null, gameId, gameName }]);
+    setMessage({ text: `درخواست حذف "${gameName}" به صف اضافه شد.`, isError: false });
+  };
+
+  // --- اصلاح شده با useCallback ---
+  const processNextQueueTask = useCallback(async () => {
+    if (queue.length === 0) return;
+
+    setIsProcessingQueue(true);
+    const currentTask = queue[0];
+    const { type, game, gameId, gameName, overrideData } = currentTask;
+
+    function RepoStateCleaner(list: any[]) {
+      return list.map(g => ({ ...g }));
+    }
+
+    try {
+      const latestRepoState = await fetchMyGames(githubToken);
+      let currentGamesList = latestRepoState ? RepoStateCleaner(latestRepoState.games) : [...myGames];
+      let currentSha = latestRepoState ? latestRepoState.sha : fileSha;
+
+      if (type === 'ADD') {
+        setMessage({ text: `⏳ در حال استخراج اطلاعات از RAWG برای "${game.name}"...`, isError: false });
+
+        const detailsTarget = `https://api.rawg.io/api/games/${game.id}?key=${RAWG_API_KEY}`;
+
+const moviesTarget = `https://api.rawg.io/api/games/${game.id}/movies?key=${RAWG_API_KEY}`;
+const screenshotsTarget = `https://api.rawg.io/api/games/${game.id}/screenshots?key=${RAWG_API_KEY}`;
+const youtubeTarget = `https://api.rawg.io/api/games/${game.id}/youtube?key=${RAWG_API_KEY}`;
+
+const [details, movieData, screenshots, youtubeData] = await Promise.all([
+  fetchSmartRoute(detailsTarget, true),
+  fetchSmartRoute(moviesTarget, true),
+  fetchSmartRoute(screenshotsTarget, true),
+  fetchSmartRoute(youtubeTarget, true).catch(() => ({ results: [] }))
+]);
+
+console.log("SLUG:", details.slug);
+console.log("STORES:", details.stores);
+console.log("METACRITIC_URL:", details.metacritic_url);
+console.log("REDDIT_URL:", details.reddit_url);
+console.log("WEBSITE:", details.website);
+          fetchSmartRoute(detailsTarget, true),
+          fetchSmartRoute(moviesTarget, true),
+          fetchSmartRoute(screenshotsTarget, true),
+          fetchSmartRoute(youtubeTarget, true).catch(() => ({ results: [] }))
+        ]);
+        
+        const rawDescriptionFa = await translateToPersian((details.description_raw || "").substring(0, 1500));
+        // اصلاح متغیر در خط زیر (rawFa به rawDescriptionFa تغییر یافت)
+        const descriptionFaWithLabel = `توضیحات بازی (ترجمه ماشینی و خودکار):\n${rawDescriptionFa}`;
+        
+        let minReq = '';
+        let recReq = '';
+        
+        const pcPlatformData = details.platforms?.find((p: any) => p.platform.slug === 'pc');
+        if (pcPlatformData?.requirements) {
+          if (pcPlatformData.requirements.minimum) minReq = pcPlatformData.requirements.minimum;
+          if (pcPlatformData.requirements.recommended) recReq = pcPlatformData.requirements.recommended;
+        }
+        if (!minReq && pcPlatformData?.requirements_minimum) minReq = pcPlatformData.requirements_minimum;
+        if (!recReq && pcPlatformData?.requirements_recommended) recReq = pcPlatformData.requirements_recommended;
+
+        const cleanReq = (text: string, fallback: string) => {
+          if (!text) return fallback;
+          return text
+            .replace(/Minimum:|Recommended:|⚙️/gi, '')
+            .replace(/<\/?b>/g, '')
+            .replace(/<\/?p>/g, '')
+            .replace(/<\/?br\s*\/?>/g, '\n')
+            .trim();
+        };
+
+        let finalAge = '---';
+        const rawEsrb = details.esrb_rating?.slug || '';
+        if (rawEsrb === 'mature') finalAge = '+17';
+        else if (rawEsrb === 'adults-only') finalAge = '+18';
+        else if (rawEsrb === 'teen') finalAge = '+13';
+        else if (rawEsrb === 'everyone-10-plus') finalAge = '+10';
+        else if (rawEsrb === 'everyone') finalAge = 'همه سنین';
+
+        const metacriticScore = details.metacritic || null;
+
+        let steamUrl = '';
+        if (details.stores && details.stores.length > 0) {
+          const steamStore = details.stores.find((s: any) => s.store?.slug === 'steam' || s.store?.id === 1);
+          if (steamStore && steamStore.url) {
+            const match = steamStore.url.match(/(?:app|sub)\/(\d+)/);
+            steamUrl = match && match[1] ? `https://store.steampowered.com/app/${match[1]}/` : steamStore.url;
+          }
+        }
+        if (!steamUrl && details.website && details.website.includes('steampowered.com')) {
+          const match = details.website.match(/(?:app|sub)\/(\d+)/);
+          steamUrl = match && match[1] ? `https://store.steampowered.com/app/${match[1]}/` : details.website;
+        }
+        
+        const autoYoutube: string[] = [];
+        if (youtubeData?.results?.length > 0) {
+          youtubeData.results.slice(0, 5).forEach((vid: any) => {
+            if (vid.external_id) autoYoutube.push(`https://www.youtube.com/watch?v=${vid.external_id}`);
+          });
+        }
+        const trailer = movieData.results?.[0]?.data?.max || '';
+        if (trailer && !autoYoutube.includes(trailer)) autoYoutube.unshift(trailer);
+
+        let galleryFinal: string[] = [];
+        if (screenshots?.results?.length > 0) galleryFinal = screenshots.results.map((s: any) => s.image);
+        if (game.short_screenshots?.length > 0) {
+          game.short_screenshots.forEach((s: any) => {
+            if (!galleryFinal.includes(s.image)) galleryFinal.push(s.image);
+          });
+        }
+        galleryFinal = galleryFinal.slice(0, 10);
+
+        const newGameObj = {
+          id: game.id,
+          name: game.name,
+          background_image: game.background_image,
+          rating: game.rating,
+          metacritic: metacriticScore,
+          released: game.released,
+          genres: game.genres || [],
+          esrb_rating: finalAge,
+          playtime: details.playtime || 0,
+          developers: details.developers?.map((d: any) => d.name).join(', ') || '---',
+          steam_link: steamUrl, 
+          trailer_url: trailer,
+          youtube_videos: autoYoutube, 
+          gallery: galleryFinal, 
+          requirements: { 
+            minimum: cleanReq(minReq, 'مشخصات حداقل سخت‌افزار ثبت نشده است.'), 
+            recommended: cleanReq(recReq, 'مشخصات سیستم پیشنهادی ثبت نشده است.') 
+          },
+          description_en: (details.description_raw || "No description available.").substring(0, 1500),
+          description_fa: descriptionFaWithLabel
+        };
+
+        const cleanList = currentGamesList.filter((g: any) => g.id !== game.id);
+        cleanList.push(newGameObj);
+
+        const res = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data/games.json`, {
+          method: 'PUT',
+          headers: { 'Authorization': `token ${githubToken}`, 'Content-Type': 'application/json', 'Accept': 'application/vnd.github.v3+json' },
+          body: JSON.stringify({ message: `Auto Add ${game.name}`, content: safeBtoa(JSON.stringify(cleanList, null, 2)), sha: currentSha })
+        });
+
+        if (res.status === 200 || res.status === 201) {
+          const resData = await res.json();
+          setFileSha(resData.content.sha);
+          setMyGames(cleanList);
+          setMessage({ text: `✅ بازی "${game.name}" با موفقیت ثبت شد.`, isError: false });
+        } else { 
+          setMessage({ text: '❌ خطا در ثبت روی گیت‌هاب.', isError: true }); 
+        }
+
+      } else if (type === 'UPDATE') {
+        setMessage({ text: `⏳ در حال اعمال اصلاحیه برای "${game.name}"...`, isError: false });
+
+        const targetGameIdx = currentGamesList.findIndex((g: any) => g.id === game.id);
+        if (targetGameIdx !== -1) {
+          currentGamesList[targetGameIdx] = {
+            ...currentGamesList[targetGameIdx],
+            ...overrideData
+          };
+
+          const res = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data/games.json`, {
+            method: 'PUT',
+            headers: { 'Authorization': `token ${githubToken}`, 'Content-Type': 'application/json', 'Accept': 'application/vnd.github.v3+json' },
+            body: JSON.stringify({ message: `Manual Edit ${game.name}`, content: safeBtoa(JSON.stringify(currentGamesList, null, 2)), sha: currentSha })
+          });
+
+          if (res.status === 200 || res.status === 201) {
+            const resData = await res.json();
+            setFileSha(resData.content.sha);
+            setMyGames(currentGamesList);
+            setMessage({ text: `✅ اصلاحیه بازی "${game.name}" با موفقیت اعمال و ذخیره شد.`, isError: false });
+          } else {
+            setMessage({ text: '❌ خطا در اعمال اصلاحیه.', isError: true });
+          }
+        }
+
+      } else if (type === 'REMOVE') {
+        setMessage({ text: `⏳ در حال حذف "${gameName}" از دیتابیس...`, isError: false });
+
+        const updated = currentGamesList.filter((g: any) => g.id !== gameId);
+        
+        const res = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data/games.json`, {
+          method: 'PUT',
+          headers: { 'Authorization': `token ${githubToken}`, 'Content-Type': 'application/json', 'Accept': 'application/vnd.github.v3+json' },
+          body: JSON.stringify({ message: `Remove ${gameName}`, content: safeBtoa(JSON.stringify(updated, null, 2)), sha: currentSha })
+        });
+
+        if (res.status === 200 || res.status === 201) {
+          const resData = await res.json();
+          setFileSha(resData.content.sha);
+          setMyGames(updated);
+          setMessage({ text: `✅ بازی "${gameName}" با موفقیت حذف گردید.`, isError: false });
+        } else {
+          setMessage({ text: '❌ خطا در حذف بازی.', isError: true });
+        }
       }
-    ],
-    "esrb_rating": "+17",
-    "playtime": 13,
-    "developers": "Naughty Dog",
-    "steam_link": "https://store.steampowered.com/search/?term=The%20Last%20of%20Us%20Part%20I",
-    "trailer_url": "",
-    "youtube_videos": [],
-    "gallery": [
-      "https://media.rawg.io/media/screenshots/723/7232dfba2a746be21a0e8548b5333dd7.jpg",
-      "https://media.rawg.io/media/screenshots/eb5/eb5a0522dbb56b8f698ac3fa8b884341.jpg",
-      "https://media.rawg.io/media/screenshots/b0f/b0f8ff8c24bc46ca70a20ee4b83d9569.jpg",
-      "https://media.rawg.io/media/screenshots/276/276688cddf9531e6cbcccc3368dfa25f.jpg",
-      "https://media.rawg.io/media/screenshots/585/585fd40ad660779a79e2853f3cd7a833.jpg",
-      "https://media.rawg.io/media/screenshots/7cb/7cb256eecd9dd0bb54d4524dc2a9b7ee.jpg"
-    ],
-    "requirements": {
-      "minimum": "Requires a 64-bit processor and operating system\nOS: Windows 10 (Version 1909 or Newer)\nProcessor: AMD Ryzen 5 1500X, Intel Core i7-4770K\nMemory: 16 GB RAM\nGraphics: AMD Radeon RX 470 (4 GB), AMD Radeon RX 6500 XT (4 GB), NVIDIA GeForce GTX 970 (4 GB), NVIDIA GeForce GTX 1050 Ti (4 GB)\nStorage: 100 GB available space\nAdditional Notes: SSD Recommended",
-      "recommended": "Requires a 64-bit processor and operating system\nOS: Windows 10 (Version 1909 or Newer)\nProcessor: AMD Ryzen 5 3600X, Intel Core i7-8700\nMemory: 16 GB RAM\nGraphics: AMD Radeon RX 5700 XT (8 GB), AMD Radeon RX 6600 XT (8 GB), NVIDIA GeForce RTX 2070 SUPER (8 GB), NVIDIA GeForce RTX 3060 (8 GB)\nStorage: 100 GB available space\nAdditional Notes: SSD Recommended"
-    },
-    "description_en": "Revisit the game that set a new bar for single-player narrative storytelling with The Last of Us™ and explore a ravaged and hardened world, where every action has a brutal consequence for Joel and Ellie.\n\nExperience the emotional storytelling and unforgettable characters in The Last of Us™, winner of over 200 Game of the Year awards.\n\nIn a ravaged civilization, where infected and hardened survivors run rampant, Joel, a weary protagonist, is hired to smuggle 14-year-old Ellie out of a military quarantine zone. However, what starts as a small job soon transforms into a brutal cross-country journey.",
-    "description_fa": "توضیحات بازی (ترجمه ماشینی و خودکار):\nRevisit the game that set a new bar for single-player narrative storytelling with The Last of Us™ and explore a ravaged and hardened world, where every action has a brutal consequence for Joel and Ellie.\n\nداستان سرایی احساسی و شخصیت های فراموش نشدنی را در The Last of Us™، برنده بیش از 200 جایزه بهترین بازی سال، تجربه کنید.\n\nدر یک تمدن ویران شده، جایی که بازماندگان آلوده و سخت‌گیر بیداد می‌کنند، جوئل، قهرمان خسته، استخدام می‌شود تا الی 14 ساله را از یک منطقه قرنطینه نظامی به بیرون قاچاق کند. با این حال، چیزی که به عنوان یک شغل کوچک شروع می شود، به زودی به یک سفر بی رحمانه بین کشور تبدیل می شود."
-  },
-  {
-    "id": 452649,
-    "name": "Resident Evil: Village",
-    "background_image": "https://media.rawg.io/media/games/6cc/6cc23249972a427f697a3d10eb57a820.jpg",
-    "rating": 4.39,
-    "released": "2021-05-07",
-    "genres": [
-      {
-        "id": 3,
-        "name": "Adventure",
-        "slug": "adventure"
-      },
-      {
-        "id": 4,
-        "name": "Action",
-        "slug": "action"
-      }
-    ],
-    "esrb_rating": "---",
-    "playtime": 15,
-    "developers": "Capcom",
-    "steam_link": "",
-    "trailer_url": "",
-    "youtube_videos": [],
-    "gallery": [
-      "https://media.rawg.io/media/screenshots/278/27848db6aeab58d7db5d33fe91722365.jpg",
-      "https://media.rawg.io/media/screenshots/456/4567bcc213eb9cede4acf9fc483f67a8.jpg",
-      "https://media.rawg.io/media/screenshots/121/121886081065b3b2124c917f70ff9659.jpg",
-      "https://media.rawg.io/media/screenshots/2ef/2ef1a6c044a2877cdb170a125f97bb97.jpg",
-      "https://media.rawg.io/media/screenshots/9b5/9b54295cadb720c76bc7999e94b17ebd.jpg",
-      "https://media.rawg.io/media/screenshots/221/221300277ed18c035c6b7aa0a9598f3e.jpg",
-      "https://media.rawg.io/media/games/6cc/6cc23249972a427f697a3d10eb57a820.jpg"
-    ],
-    "requirements": {
-      "minimum": "Requires a 64-bit processor and operating system\nOS: Windows 10 (64 bit)\nProcessor: AMD Ryzen 3 1200  ／ Intel Core i5-7500\nMemory: 8 GB RAM\nGraphics: AMD Radeon RX 560 with 4GB VRAM ／ NVIDIA GeForce GTX 1050 Ti with 4GB VRAM\nDirectX: Version 12\nAdditional Notes: Estimated performance (when set to Prioritize Performance): 1080p/60fps. ・Framerate might drop in graphics-intensive scenes. ・AMD Radeon RX 6700 XT or NVIDIA GeForce RTX 2060 required to support ray tracing. System requirements subject to change during game development.",
-      "recommended": "Requires a 64-bit processor and operating system\nOS: Windows 10 (64 bit)\nProcessor: AMD Ryzen 5 3600 ／ Intel Core i7 8700\nMemory: 16 GB RAM\nGraphics: AMD Radeon RX 5700 ／ NVIDIA GeForce GTX 1070\nDirectX: Version 12\nAdditional Notes: Estimated performance: 1080p/60fps ・Framerate might drop in graphics-intensive scenes. ・AMD Radeon RX 6700 XT or NVIDIA GeForce RTX 2070 required to support ray tracing. System requirements subject to change during game development."
-    },
-    "description_en": "Experience survival horror like never before in the eighth major installment in the storied Resident Evil franchise - Resident Evil Village.\n\nSet a few years after the horrifying events in the critically acclaimed Resident Evil 7 biohazard, the all-new storyline begins with Ethan Winters and his wife Mia living peacefully in a new location, free from their past nightmares. Just as they are building their new life together, tragedy befalls them once again.",
-    "description_fa": "توضیحات بازی (ترجمه ماشینی و خودکار):\nترس بقا را مانند هرگز در هشتمین قسمت اصلی در فرانچایز داستانی Resident Evil - Resident Evil Village تجربه کنید.\n\nچند سال پس از اتفاقات هولناک در بازی تحسین شده Resident Evil 7، داستان کاملاً جدید با Ethan Winters و همسرش Mia شروع می‌شود که به‌طور مسالمت‌آمیزی در مکانی جدید زندگی می‌کنند، فارغ از کابوس‌های گذشته‌شان. درست زمانی که آنها در حال ساختن زندگی جدید خود با یکدیگر هستند، یک بار دیگر مصیبت برای آنها اتفاق می افتد."
-  },
-  {
-    "id": 573123,
-    "name": "Life is Strange: True Colors",
-    "background_image": "https://media.rawg.io/media/games/278/2784fe67065c5095411f0d4c85205143.jpg",
-    "rating": 3.79,
-    "released": "2021-09-10",
-    "genres": [
-      {
-        "id": 3,
-        "name": "Adventure",
-        "slug": "adventure"
-      },
-      {
-        "id": 4,
-        "name": "Action",
-        "slug": "action"
-      }
-    ],
-    "esrb_rating": "+17",
-    "playtime": 11,
-    "developers": "Deck Nine",
-    "steam_link": "",
-    "trailer_url": "",
-    "youtube_videos": [],
-    "gallery": [
-      "https://media.rawg.io/media/screenshots/b79/b79e78e7ec97b7bfbe423ade108b7e7b.jpg",
-      "https://media.rawg.io/media/screenshots/fff/fffa428795765de2d116bf761433c963.jpg",
-      "https://media.rawg.io/media/screenshots/e67/e672f40189b14f273f71e1a57dccb4e9.jpg",
-      "https://media.rawg.io/media/screenshots/912/912fe706f0071afde939f41cd042d926.jpg",
-      "https://media.rawg.io/media/screenshots/9ad/9ad105b9d1b39509995f4126cc675027.jpg",
-      "https://media.rawg.io/media/screenshots/4e4/4e46791fe550f87ea2507502f14328d2.jpg",
-      "https://media.rawg.io/media/games/278/2784fe67065c5095411f0d4c85205143.jpg"
-    ],
-    "requirements": {
-      "minimum": "Requires a 64-bit processor and operating system\nOS: Windows 10 64-bit\nProcessor: AMD Phenom II X4 965, 3.40 GHz / Intel Core i5-2300, 2.80 GHz\nMemory: 6 GB RAM\nGraphics: Radeon HD 7790, 2 GB / GeForce GTX 750Ti, 2 GB\nDirectX: Version 11\nStorage: 30 GB available space",
-      "recommended": "Requires a 64-bit processor and operating system\nOS: Windows 10 64-bit\nProcessor: AMD FX-8350, 4.00 GHz / Intel Core i5-3470, 3.20 GHz\nMemory: 8 GB RAM\nGraphics: Radeon RX 590, 8 GB / GeForce GTX 1060, 6 GB\nDirectX: Version 11\nStorage: 30 GB available space"
-    },
-    "description_en": "A bold new era of the award-winning Life is Strange begins, with an all-new playable lead character and a thrilling mystery to solve!\r\nPre-order Life Is Strange: True Colors now to receive 4 additional in-game outfits for Alex.\r\nAlex Chen has long suppressed her 'curse': the supernatural ability to experience, absorb and manipulate the strong emotions of others, which she sees as blazing, colored auras.\r\nWhen her brother dies in a so-called accident, Alex must embrace her volatile power to find the truth – and uncover the dark secrets buried by a small town.\r\nTHE TRUTH WILL HURT\r\nDiscover the shocking secrets behind your brother’s death in an emotional roller-coaster of an adventure.\r\nFEEL EVERYTHING\r\nChange fate and change lives with the psychic power of Empathy.\r\nFORGE DEEP RELATIONSHIPS\r\nBuild trust with the townsfolk – and embrace friendship or romance with Ryan and Steph.\r\nA TRULY PERSONAL STORY\r\nMake tough decisions and choose your own future. Freely roam the streets, stores, and hidden spaces of Haven Springs and meet unforgettable characters.\r\nFIND YOUR VOICE\r\nAnd decide Alex's style, with up to 24 outfits in your wardrobe.\r\nEXCLUSIVE SOUNDTRACK\r\nNew tracks by mxmtoon and Novo Amor, and extensive licensed songs including Radiohead, Phoebe Bridgers, Gabrielle Aplin, and more.",
-    "description_fa": "توضیحات بازی (ترجمه ماشینی و خودکار):\nیک دوره جدید جسورانه از برنده جایزه Life is Strange آغاز می شود، با یک شخصیت اصلی قابل بازی کاملاً جدید و یک معمای هیجان انگیز برای حل!\r\nاکنون Life Is Strange: True Colors را پیش‌سفارش دهید تا 4 لباس درون بازی برای الکس دریافت کنید.\r\nالکس چن مدت‌هاست که «نفرین» خود را سرکوب کرده است: توانایی ماوراء طبیعی برای تجربه، جذب و دستکاری احساسات قوی دیگران، که به نظر او هاله‌های درخشان و رنگی است.\r\nوقتی برادرش در به اصطلاح تصادف می میرد، الکس باید قدرت فرار او را برای یافتن حقیقت در آغوش بگیرد - و اسرار تاریک مدفون شده توسط یک شهر کوچک را کشف کند.\r\nحقیقت صدمه خواهد زد\r\nاسرار تکان دهنده مرگ برادرتان را در یک ترن هوایی هیجانی از یک ماجراجویی کشف کنید.\r\nهمه چیز را احساس کنید\r\nبا نیروی روانی همدلی سرنوشت را تغییر دهید و زندگی را تغییر دهید.\r\nایجاد روابط عمیق\r\nبا مردم شهر اعتماد ایجاد کنید - و با رایان و استف دوستی یا عاشقانه را در آغوش بگیرید.\r\nیک داستان واقعاً شخصی\r\nتصمیمات سخت بگیرید و آینده خود را انتخاب کنید. آزادانه در خیابان ها، فروشگاه ها و فضاهای مخفی Haven Springs پرسه بزنید و با شخصیت های فراموش نشدنی ملاقات کنید.\r\nصدای خود را پیدا کنید\r\nو با حداکثر 24 لباس در کمد لباس خود، سبک الکس را تعیین کنید.\r\nموسیقی متن منحصر به فرد\r\nآهنگ‌های جدید mxmtoon و Novo Amor، و آهنگ‌های دارای مجوز گسترده از جمله Radiohead، Phoebe Bridgers، Gabrielle Aplin و غیره."
-  },
-  {
-    "id": 4459,
-    "name": "Grand Theft Auto IV",
-    "background_image": "https://media.rawg.io/media/games/4a0/4a0a1316102366260e6f38fd2a9cfdce.jpg",
-    "rating": 4.26,
-    "released": "2008-04-29",
-    "genres": [
-      {
-        "id": 3,
-        "name": "Adventure",
-        "slug": "adventure"
-      },
-      {
-        "id": 4,
-        "name": "Action",
-        "slug": "action"
-      }
-    ],
-    "esrb_rating": "+17",
-    "playtime": 10,
-    "developers": "Rockstar North",
-    "steam_link": "",
-    "trailer_url": "",
-    "youtube_videos": [],
-    "gallery": [
-      "https://media.rawg.io/media/screenshots/07f/07f7cf80741ff306e4eca982c3e64ac8.jpg",
-      "https://media.rawg.io/media/screenshots/fef/fefd51ec13aa33acbd796ef79bcef7cb.jpg",
-      "https://media.rawg.io/media/screenshots/b78/b78ffd258d5793be704c380e572748bc.jpg",
-      "https://media.rawg.io/media/screenshots/17c/17c85ab9dfc4fda8e1e5ba72932ef2bf.jpg",
-      "https://media.rawg.io/media/screenshots/a12/a12ca99cc74c1e7eba7100b0891dd1e0.jpg",
-      "https://media.rawg.io/media/screenshots/b25/b254f9729ae3f36a9ccffccaa01d5cf6.jpg",
-      "https://media.rawg.io/media/games/4a0/4a0a1316102366260e6f38fd2a9cfdce.jpg"
-    ],
-    "requirements": {
-      "minimum": "OS: Windows Vista - Service Pack 1 / Windows XP - Service Pack 3                    \nProcessor: Intel Core 2 Duo 1.8GHz, AMD Athlon X2 64 2.4GHz                    \nMemory: 1.5GB XP / 1.5GB Vista                    \nGraphics: 256MB Nvidia 7900 / 256MB ATI X1900                    \nDirectX Version: DirectX 9.0c Compliant Card                     \nHard Drive: 16GB of Hard Disc Space                     \nSound Card: 5.1 Channel Audio Card                     \nOther Requirements: Initial activation requires internet connection; Online play requires log-in to Games For Windows - Live and Rockstar Games Social Club (13+ to register); software installations required including Adobe Flash, DirectX, Microsoft’s .NET Framework 3.0, Games For Windows - LIVE, and Internet Explorer.",
-      "recommended": "مشخصات سیستم پیشنهادی ثبت نشده است."
-    },
-    "description_en": "Every crime story is a story of a search for success. The player will become Niko Bellic, immigrant arriving at the Liberty City to reunite with his cousin Roman and find the man that betrayed him and his army unit fifteen years prior to the events of the game. While protecting his cousin, Niko has to deal with loan sharks, Russian mobsters, and other gangs. After the third game, GTA brought more realism to the player, in order to make the city and its people look more believable. Street vendors on every corner will sell food that replenishes health, bars with playable dart boards, bowling alleys and even comedy clubs and movie theatres. Open world will allow players not only hang out with important NPC in order to receive bonuses and unlocks but taking girls on the dates as well, to help Niko settle. Multiplayer mode allows up to 32 players to explore the copy of the single-player city and initiate multiplayer activities, like races or Deathmatches.",
-    "description_fa": "توضیحات بازی (ترجمه ماشینی و خودکار):\nهر داستان جنایی، داستان جستجوی موفقیت است. بازیکن تبدیل به نیکو بلیک می شود، مهاجری که به شهر لیبرتی می رسد تا دوباره با پسر عمویش رومن متحد شود و مردی را پیدا کند که پانزده سال قبل از رویدادهای بازی به او و واحد ارتشش خیانت کرده است. نیکو در حالی که از پسر عموی خود محافظت می کند، مجبور است با کوسه های قرضه دار، اوباش روسی و سایر باندها مقابله کند. بعد از بازی سوم، GTA رئالیسم بیشتری را برای بازیکن به ارمغان آورد تا شهر و مردمش را باورپذیرتر جلوه دهد. فروشندگان خیابانی در هر گوشه، غذاهایی را می فروشند که سلامتی را تامین می کند، بارهایی با تخته دارت قابل بازی، سالن های بولینگ و حتی کلوپ های کمدی و سینما. دنیای باز به بازیکنان این امکان را می‌دهد که نه تنها با NPC مهم برای دریافت پاداش‌ها و باز کردن قفل‌ها معاشرت کنند، بلکه دختران را در تاریخ‌ها نیز می‌برند تا به نیکو کمک کنند تا تسویه حساب کنند. حالت چند نفره به حداکثر 32 بازیکن اجازه می دهد تا کپی شهر تک نفره را کاوش کنند و فعالیت های چند نفره مانند مسابقه یا مسابقات مرگ را آغاز کنند."
-  },
-  {
-    "id": 378578,
-    "name": "Grand Theft Auto IV: Complete Edition",
-    "background_image": "https://media.rawg.io/media/screenshots/e59/e59cc96f38cc93af5a396173878018d7.jpg",
-    "rating": 4.58,
-    "released": "2010-10-27",
-    "genres": [
-      {
-        "id": 3,
-        "name": "Adventure",
-        "slug": "adventure"
-      },
-      {
-        "id": 4,
-        "name": "Action",
-        "slug": "action"
-      }
-    ],
-    "esrb_rating": "+18",
-    "playtime": 0,
-    "developers": "Rockstar Toronto",
-    "steam_link": "",
-    "trailer_url": "",
-    "youtube_videos": [],
-    "gallery": [
-      "https://media.rawg.io/media/screenshots/c82/c8278ac80481cf297730fbecac162428.jpg",
-      "https://media.rawg.io/media/screenshots/f1d/f1d10446805403a28b374fbd0f4bcc89.jpg",
-      "https://media.rawg.io/media/screenshots/1a6/1a6aa2235c187a2849e21db5cf8bfa07.jpg",
-      "https://media.rawg.io/media/screenshots/ce5/ce534ab69b8e122e0e466a1b0d15f33c.jpg",
-      "https://media.rawg.io/media/screenshots/0c7/0c71726d8be588e7c6b20795d1b81c25.jpeg",
-      "https://media.rawg.io/media/screenshots/cfc/cfc33207ca709e50d5e49e8987b85e7b.jpg",
-      "https://media.rawg.io/media/screenshots/e59/e59cc96f38cc93af5a396173878018d7.jpg"
-    ],
-    "requirements": {
-      "minimum": "مشخصات حداقل سخت‌افزار ثبت نشده است.",
-      "recommended": "مشخصات سیستم پیشنهادی ثبت نشده است."
-    },
-    "description_en": "<strong>PLEASE NOTE:  Microsoft no longer supports creating Games for Windows-LIVE accounts within Grand Theft Auto IV. You can create an account through account.xbox.com and then log into your account in game. </strong><br/><br/>This standalone retail title spans three distinct stories, interwoven to create one of the most unique and engaging single-player experiences of this generation.<br/><br/>\t\t\t\t\t\t\t\t\t\t\t\tThis definitive Grand Theft Auto bundle boasts hundreds of hours of single-player gameplay; a full suite of open-world multiplayer game types limited only by players’ creativity; dozens of eclectic radio stations with hours of music and original dialogue",
-    "description_fa": "توضیحات بازی (ترجمه ماشینی و خودکار):\n<strong>لطفاً توجه داشته باشید: مایکروسافت دیگر از ایجاد بازی‌ها برای حساب‌های Windows-LIVE در Grand Theft Auto IV پشتیبانی نمی‌کند. می توانید از طریق account.xbox.com یک حساب کاربری ایجاد کنید و سپس وارد حساب کاربری خود در بازی شوید. </strong><br/><br/>این عنوان خرده فروشی مستقل شامل سه داستان متمایز است که در هم تنیده شده اند تا یکی از منحصر به فردترین و جذاب ترین تجربه های تک نفره این نسل را ایجاد کنند.<br/><br/> این بسته نهایی Grand Theft Auto صدها ساعت گیم پلی تک نفره را به رخ می کشد. مجموعه ای کامل از انواع بازی های چند نفره جهان باز که فقط با خلاقیت بازیکنان محدود شده است. ده ها ایستگاه رادیویی التقاطی با ساعت ها موسیقی و دیالوگ های اصلی"
-  },
-  {
-    "id": 983211,
-    "name": "Life is Strange: Double Exposure",
-    "background_image": "https://media.rawg.io/media/games/279/279a4377b3499615155908764e297e1c.jpg",
-    "rating": 3,
-    "released": "2024-10-29",
-    "genres": [
-      {
-        "id": 3,
-        "name": "Adventure",
-        "slug": "adventure"
-      },
-      {
-        "id": 4,
-        "name": "Action",
-        "slug": "action"
-      }
-    ],
-    "esrb_rating": "+17",
-    "playtime": 14,
-    "developers": "Deck Nine Games",
-    "steam_link": "",
-    "trailer_url": "",
-    "youtube_videos": [],
-    "gallery": [
-      "https://media.rawg.io/media/screenshots/97f/97f60c5c224324f64229567311eacf7b.jpg",
-      "https://media.rawg.io/media/screenshots/8b3/8b35944e21c893e3734ce77c10913049.jpg",
-      "https://media.rawg.io/media/screenshots/e34/e34fd80c14d2bc4cfa43c1a32f79c133.jpg",
-      "https://media.rawg.io/media/screenshots/337/337cc83f9cf803f122d264f4f8887437.jpg",
-      "https://media.rawg.io/media/screenshots/b61/b61f40b27debe656eaedc45dc185ded5.jpg",
-      "https://media.rawg.io/media/screenshots/8f8/8f8d980b43d16d1c79846d6d9a69b7c8.jpg",
-      "https://media.rawg.io/media/games/279/279a4377b3499615155908764e297e1c.jpg"
-    ],
-    "requirements": {
-      "minimum": "Requires a 64-bit processor and operating system\nOS: Windows® 10 / 11 64-bit\nProcessor: Intel Core i5-2400 / AMD FX-6300\nMemory: 12 GB RAM\nGraphics: NVIDIA GeForce GTX 960, 4 GB / AMD Radeon RX 470, 4GB\nDirectX: Version 12\nStorage: 25 GB available space\nAdditional Notes: 1080p @ 30fps. SSD Recommended.",
-      "recommended": "Requires a 64-bit processor and operating system\nOS: Windows® 10 / 11 64-bit\nProcessor: Intel Core i7-7700K / AMD Ryzen 5 3600\nMemory: 12 GB RAM\nGraphics: NVIDIA GeForce RTX 2080 Super, 8GB / AMD Radeon RX 6700 XT, 12GB\nDirectX: Version 12\nStorage: 25 GB available space\nAdditional Notes: 1080p @ 60fps. SSD Recommended."
-    },
-    "description_en": "Max Caulfield, photographer-in-residence at the prestigious Caledon University, discovers her closest new friend, Safi, dead in the snow.\nMurdered.\nTo save her, Max tries to Rewind time - a power she’s not used in years... instead, Max opens the way to a parallel timeline where Safi is still alive, and still in danger!\nMax realizes the killer will soon strike again - in both versions of reality.\nWith her new power to Shift between two timelines - can Max solve and prevent the same murder?",
-    "description_fa": "توضیحات بازی (ترجمه ماشینی و خودکار):\nمکس کالفیلد، عکاس مقیم دانشگاه معتبر کالدون، نزدیک‌ترین دوست جدیدش، سافی را می‌یابد که در برف مرده است.\nبه قتل رسید.\nمکس برای نجات او سعی می‌کند زمان را به عقب برگرداند - قدرتی که سال‌ها از آن استفاده نمی‌کرد... در عوض، مکس راه را به یک جدول زمانی موازی باز می‌کند که در آن Safi هنوز زنده است، و هنوز در خطر است!\nمکس متوجه می شود که قاتل به زودی دوباره حمله خواهد کرد - در هر دو نسخه واقعیت.\nمکس با قدرت جدیدش برای جابجایی بین دو خط زمانی - آیا مکس می تواند همان قتل را حل کند و از آن جلوگیری کند؟"
-  },
-  {
-    "id": 58952,
-    "name": "Life is Strange 2",
-    "background_image": "https://media.rawg.io/media/games/883/883bc3050f9a4115d1968ece56bddfc2.jpg",
-    "rating": 3.8,
-    "released": "2018-09-27",
-    "genres": [
-      {
-        "id": 3,
-        "name": "Adventure",
-        "slug": "adventure"
-      }
-    ],
-    "esrb_rating": "+17",
-    "playtime": 6,
-    "developers": "DONTNOD Entertainment",
-    "steam_link": "",
-    "trailer_url": "",
-    "youtube_videos": [],
-    "gallery": [
-      "https://media.rawg.io/media/screenshots/86e/86e7f7f3085d0f50b059995ef68131bb.jpg",
-      "https://media.rawg.io/media/screenshots/20d/20da36c5bff3fd598d066324f4992f96.jpg",
-      "https://media.rawg.io/media/screenshots/86e/86e4ab903e6352fc1c2451a1402a0ad1.jpg",
-      "https://media.rawg.io/media/screenshots/5b9/5b96d265e60a6e549fd785dbde739e31.jpg",
-      "https://media.rawg.io/media/screenshots/058/05895612c37538d757216b823e31b2d1.jpg",
-      "https://media.rawg.io/media/games/883/883bc3050f9a4115d1968ece56bddfc2.jpg"
-    ],
-    "requirements": {
-      "minimum": "OS: Windows 7 or above (64-bit Operating System Required)\r\n\r\nProcessor: Intel Core i3-2100 (3.1GHz) or AMD Phenom X4 945 (3.0GHz)\r\n\r\nMemory: 4 GB RAM\r\n\r\nGraphics: Nvidia GeForce GTX 650 2GB or AMD Radeon HD 7770 2GB\r\n\r\nDirectX: Version 11\r\n\r\nStorage: 40 GB available space\r\n\r\nAdditional Notes: Please note that 32-bit operating systems will not be supported",
-      "recommended": "OS: Windows 10 64-bit\r\n\r\nProcessor: Intel Core i5 3470, (3.20 Ghz) or AMD FX-8350, (4.00 Ghz)\r\n\r\nMemory: 6 GB RAM\r\n\r\nGraphics: Nvidia GeForce GTX 970 4GB or AMD Radeon R9 280X 3GB\r\n\r\nDirectX: Version 11\r\n\r\nStorage: 40 GB available space\r\n\r\nAdditional Notes: Please note that 32-bit operating systems will not be supported"
-    },
-    "description_en": "The award winning Life is Strange series continues with a long-awaited sequel from DONTNOD Entertainment.\r\n\r\nTwo brothers Sean and Daniel Diaz, 16 and 9, are forced to run away from home after a tragic incident in Seattle. In fear of the police, Sean & Daniel head to Mexico while attempting to conceal a sudden and mysterious supernatural power.\r\n\r\nLife on the road is tough and now totally responsible for his much younger brother, Sean begins to realise that his decisions will impact their lives forever…\r\n\r\nEpisode 1 will be available on September 27th 2018.  Episodes 2-5 will be available at later dates.  \r\n\r\nComplete Season includes Episode 1 and the Episode 2-5 bundle. Episodes 2-5 available upon release.",
-    "description_fa": "توضیحات بازی (ترجمه ماشینی و خودکار):\nمجموعه برنده جایزه Life is Strange با دنباله ای از DONTNOD Entertainment که مدت ها منتظرش بودیم ادامه دارد.\r\n\r\nدو برادر شان و دانیل دیاز 16 و 9 ساله پس از یک حادثه غم انگیز در سیاتل مجبور به فرار از خانه می شوند. در ترس از پلیس، شان و دانیل به مکزیک می روند و در حال تلاش برای پنهان کردن یک قدرت ماوراء طبیعی ناگهانی و مرموز هستند.\r\n\r\nزندگی در جاده سخت است و اکنون کاملاً مسئول برادر کوچکترش است، شان شروع به درک می کند که تصمیمات او برای همیشه زندگی آنها را تحت تأثیر قرار می دهد…\r\n\r\nقسمت 1 در 27 سپتامبر 2018 در دسترس خواهد بود. قسمت های 2 تا 5 در تاریخ های بعدی در دسترس خواهند بود.  \r\n\r\nفصل کامل شامل قسمت 1 و بسته اپیزود 2-5 است. قسمت 2-5 پس از انتشار در دسترس است."
-  },
-  {
-    "id": 10213,
-    "name": "Dota 2",
-    "background_image": "https://media.rawg.io/media/games/6fc/6fcf4cd3b17c288821388e6085bb0fc9.jpg",
-    "rating": 3.07,
-    "released": "2013-07-09",
-    "genres": [
-      {
-        "id": 59,
-        "name": "Massively Multiplayer",
-        "slug": "massively-multiplayer"
-      },
-      {
-        "id": 4,
-        "name": "Action",
-        "slug": "action"
-      }
-    ],
-    "esrb_rating": "---",
-    "playtime": 14,
-    "developers": "Valve Software",
-    "steam_link": "",
-    "trailer_url": "https://steamcdn-a.akamaihd.net/steam/apps/256692017/movie_max.mp4",
-    "youtube_videos": [
-      "https://steamcdn-a.akamaihd.net/steam/apps/256692017/movie_max.mp4"
-    ],
-    "gallery": [
-      "https://media.rawg.io/media/screenshots/cef/cefd0f45c88be2d6e2ff7eed94c16cf3.jpg",
-      "https://media.rawg.io/media/screenshots/e2a/e2a1a6c8b07bcdb91d7c6050b16854c5.jpg",
-      "https://media.rawg.io/media/screenshots/55e/55e2c2ff16229eef87cfd8728ca537ac.jpg",
-      "https://media.rawg.io/media/screenshots/601/601ceb08d04da42f4de5d8b9016f31a6.jpg",
-      "https://media.rawg.io/media/screenshots/f02/f02a389dafd748b801cb4ff971a868af.jpg",
-      "https://media.rawg.io/media/screenshots/da6/da6e4cba4e5787674d0e6877d1fc426a.jpg",
-      "https://media.rawg.io/media/games/6fc/6fcf4cd3b17c288821388e6085bb0fc9.jpg"
-    ],
-    "requirements": {
-      "minimum": "OS: Windows 7 or newer\nProcessor: Dual core from Intel or AMD at 2.8 GHz\nMemory: 4 GB RAM\nGraphics: nVidia GeForce 8600/9600GT, ATI/AMD Radeon HD2600/3600\nDirectX: Version 9.0c\nNetwork: Broadband Internet connection\nStorage: 15 GB available space\nSound Card: DirectX Compatible",
-      "recommended": "مشخصات سیستم پیشنهادی ثبت نشده است."
-    },
-    "description_en": "What used to be an unofficial modded map for the Warcraft 3, ended up being the most budgeted cybersport discipline, gathering millions of people to watch annual international championships.\nMOBA genre started with the DOTA, Defense of the Ancients, which can be efficiently described as 5 vs 5 top-down action strategy game, during which players are tasked to destroy the enemy core while protecting their own.\nPlayers can pick out of the roster of 112 heroes and battle on the single map while taking advantage of field vision, resources and item build that can either make heroes stronger or disable the enemy. DOTA 2 is still active, and receives updates weekly, reshaping metas and refreshing game balance, if by any chance some heroes became unreasonably strong. Each hero has not only a unique set of abilities but is fully customizable, through getting items for heroes after matches of through the trade. Not only heroes but terrain, couriers, that deliver items for you and even match announcers, that can be voiced by heroes, professional casters of just memorable characters from other forms of media.",
-    "description_fa": "توضیحات بازی (ترجمه ماشینی و خودکار):\nچیزی که قبلاً یک نقشه اصلاح‌شده غیررسمی برای Warcraft 3 بود، در نهایت به بودجه‌ترین رشته ورزشی سایبری تبدیل شد و میلیون‌ها نفر را برای تماشای مسابقات قهرمانی بین‌المللی سالانه گرد هم آورد.\nژانر MOBA با DOTA، Defense of the Ancients شروع شد، که می‌توان آن را به‌عنوان بازی استراتژی اکشن 5 در مقابل 5 از بالا به پایین توصیف کرد، که در طی آن بازیکنان وظیفه دارند تا هسته دشمن را نابود کنند و در عین حال از هسته خود محافظت کنند.\nبازیکنان می توانند از فهرست 112 قهرمان انتخاب کنند و روی نقشه واحد بجنگند و در عین حال از دید میدانی، منابع و ساخت آیتم استفاده کنند که می تواند قهرمانان را قوی تر کند یا دشمن را از کار بیاندازد. DOTA 2 هنوز فعال است و هر هفته به‌روزرسانی‌ها را دریافت می‌کند، متاها را تغییر می‌دهد و تعادل بازی را تازه‌سازی می‌کند، اگر به‌طور تصادفی برخی از قهرمانان به‌طور غیرمنطقی قوی شوند. هر قهرمان نه تنها مجموعه‌ای از توانایی‌های منحصربه‌فرد دارد، بلکه کاملاً قابل تنظیم است، از طریق گرفتن آیتم‌ها برای قهرمانان پس از مسابقات از طریق تجارت. نه تنها قهرمان‌ها، بلکه زمین، پیک‌هایی که آیتم‌هایی را برای شما تحویل می‌دهند و حتی گویندگان مسابقه را می‌دهند، که می‌توانند توسط قهرمانان، بازیگران حرفه‌ای شخصیت‌های به یاد ماندنی از دیگر اشکال رسانه‌ها صداپیشگی کنند."
-  },
-  {
-    "id": 10986,
-    "name": "Syberia 3",
-    "background_image": "https://media.rawg.io/media/games/d0c/d0cfde21933c9075e793d6cc0c49c91d.jpg",
-    "rating": 2.96,
-    "released": "2017-04-19",
-    "genres": [
-      {
-        "id": 3,
-        "name": "Adventure",
-        "slug": "adventure"
-      },
-      {
-        "id": 7,
-        "name": "Puzzle",
-        "slug": "puzzle"
-      }
-    ],
-    "esrb_rating": "+13",
-    "playtime": 6,
-    "developers": "Plug In Digital, Microids, Anuman Interactive",
-    "steam_link": "https://store.steampowered.com/search/?term=Syberia%203",
-    "trailer_url": "https://steamcdn-a.akamaihd.net/steam/apps/256679248/movie_max.mp4",
-    "youtube_videos": [
-      "https://steamcdn-a.akamaihd.net/steam/apps/256679248/movie_max.mp4"
-    ],
-    "gallery": [
-      "https://media.rawg.io/media/screenshots/708/708bd9aa88e294722798b6862b3f2701.jpg",
-      "https://media.rawg.io/media/screenshots/981/9810f770c62cc4d64ad0d8966d6c1400.jpg",
-      "https://media.rawg.io/media/screenshots/119/119f8137070b242c92aae728651bb2c1.jpg",
-      "https://media.rawg.io/media/screenshots/879/879c6519a0e7c52b664cf5288d7a4b7c.jpg",
-      "https://media.rawg.io/media/screenshots/ed4/ed45f9d663da694e31626de3356be526.jpg",
-      "https://media.rawg.io/media/screenshots/a1a/a1a989d829b0e029ae61abc73fee8656.jpg",
-      "https://media.rawg.io/media/games/d0c/d0cfde21933c9075e793d6cc0c49c91d.jpg"
-    ],
-    "requirements": {
-      "minimum": "OS: Windows 7+ 64bit\nProcessor: Intel Core i3\nMemory: 4 GB RAM\nGraphics: AMD R7 260X - Nvidia GTX 550 Ti 2GB\nDirectX: Version 11\nStorage: 45 GB available space\nSound Card: Any",
-      "recommended": "OS: Windows 7+ 64bit\nProcessor: Intel Core i5\nMemory: 8 GB RAM\nGraphics: Nvidia GTX 960 2 GB\nDirectX: Version 11\nStorage: 45 GB available space\nSound Card: Any"
-    },
-    "description_en": "Digital Deluxe Edition\nDigital Deluxe Edition includes:\nDigital Standard Game\nDigital Soundtracks (*mp3)\nExclusive Digital 20 first pages  of the next Comic Books (*Pdf)\n1 Digital Wallpaper\nAbout the GameAuthor and creator : Benoît SokalOverview:\nThe limitless imagination of Benoît Sokal continues in Syberia 3, focusing on an entirely new adventure. After abandoning the island, Kate is found dying on the edge of a river by the Youkole tribe, a nomadic people migrating with their snow ostriches. Stuck in Valsembor village, together they must find a way to continue their journey in a race against their enemies and unexpected obstacles, not to mention Kate's past, which catches up with her.\nThe next generation in adventure games, Syberia 3 takes you inside an enchanting, mysterious universe full of life for you to explore in 3D. Plunged into the heart of a world inhabited by a cast of interesting characters, you'll discover and experience a fabulous tale as imagined by Benoit Sokal.\nA brand new tale, completely different from the first two Syberia games\nExceptionally immersive storytelling, multiplied by Benoit Sokal's unparalleled artistic direction\nExplore Benoit Sokal's poetic universe in 3D for the first time\nOriginal score by Inon Zur (Syberia 2, Fallout, Dragon Age, Prince of Persia)\nOriginal, real-time 3D puzzles and mysteriesPreviously in Syberia\nA lawyer in NYC, Kate Walker was sent to Europe on a simple mission that gradually transformed into personal quest, an adventu",
-    "description_fa": "توضیحات بازی (ترجمه ماشینی و خودکار):\nنسخه لوکس دیجیتال\nDigital Deluxe Edition شامل:\nبازی استاندارد دیجیتال\nموسیقی متن دیجیتال (*mp3)\nانحصاری دیجیتال 20 صفحه اول کتاب های مصور بعدی (*Pdf)\n1 کاغذ دیواری دیجیتال\nدرباره بازی نویسنده و سازنده: Benoît Sokal مرور کلی:\nتخیل بی حد و حصر Benoît Sokal در Syberia 3 با تمرکز بر یک ماجراجویی کاملاً جدید ادامه دارد. پس از ترک جزیره، کیت در حال مرگ در لبه رودخانه توسط قبیله یوکوله، یک مردم عشایری که با شترمرغ های برفی خود مهاجرت می کنند، پیدا می شود. آنها که در دهکده والسمبور گیر کرده اند، با هم باید راهی برای ادامه سفر خود در مسابقه ای در برابر دشمنان و موانع غیرمنتظره خود بیابند، بدون در نظر گرفتن گذشته کیت، که به او می رسد.\nنسل بعدی بازی‌های ماجراجویی، Syberia 3 شما را به درون دنیایی افسون‌کننده و اسرارآمیز پر از زندگی می‌برد تا بتوانید به صورت سه بعدی کاوش کنید. با فرو رفتن در قلب دنیایی که در آن گروهی از شخصیت‌های جالب زندگی می‌کنند، داستانی افسانه‌ای را که توسط بنوا سوکال تصور می‌شود، کشف و تجربه خواهید کرد.\nیک داستان کاملا جدید، کاملا متفاوت از دو بازی اول Syberia\nداستان سرایی فوق‌العاده همه جانبه که با کارگردانی هنری بی‌نظیر بنوا سوکال تضعیف شده است.\nبرای اولین بار جهان شاعرانه Benoit Sokal را به صورت سه بعدی کاوش کنید\nموسیقی متن اصلی اینون زور (Syberia 2, Fallout, Dragon Age, Prince of Persia)\nمعماها و معماهای سه بعدی اصلی و بی‌درنگ قبلا در Syberia\nکیت واکر که یک وکیل در نیویورک است برای یک ماموریت ساده به اروپا فرستاده شد که به تدریج به یک جستجوی شخصی تبدیل شد، یک ماجراجویی."
-  },
-  {
-    "id": 1030,
-    "name": "Limbo",
-    "background_image": "https://media.rawg.io/media/games/942/9424d6bb763dc38d9378b488603c87fa.jpg",
-    "rating": 4.14,
-    "metacritic": 88,
-    "released": "2010-07-21",
-    "genres": [
-      {
-        "id": 3,
-        "name": "Adventure",
-        "slug": "adventure"
-      },
-      {
-        "id": 4,
-        "name": "Action",
-        "slug": "action"
-      },
-      {
-        "id": 7,
-        "name": "Puzzle",
-        "slug": "puzzle"
-      },
-      {
-        "id": 51,
-        "name": "Indie",
-        "slug": "indie"
-      },
-      {
-        "id": 83,
-        "name": "Platformer",
-        "slug": "platformer"
-      }
-    ],
-    "esrb_rating": "+13",
-    "playtime": 3,
-    "developers": "Double Eleven, Playdead, 鱼俞",
-    "steam_link": "https://store.steampowered.com/search/?term=Limbo",
-    "trailer_url": "",
-    "youtube_videos": [],
-    "gallery": [
-      "https://media.rawg.io/media/screenshots/512/512f4bc2092016478ddcb9e7e60aeec0.jpg",
-      "https://media.rawg.io/media/screenshots/63d/63d30699e8fcab9c808e6714d9d3fd59.jpg",
-      "https://media.rawg.io/media/screenshots/de0/de04bbc0fd9904071ef25bf23113c8c4.jpg",
-      "https://media.rawg.io/media/screenshots/eed/eedbbca4ae2debf2d4e23e55d1f6cff7.jpg",
-      "https://media.rawg.io/media/screenshots/59f/59f472b3ed7b414777a29213d70b4d17.jpg",
-      "https://media.rawg.io/media/screenshots/e58/e58d31146e4a9e3786dabcbfc30126bc.jpg",
-      "https://media.rawg.io/media/games/942/9424d6bb763dc38d9378b488603c87fa.jpg"
-    ],
-    "requirements": {
-      "minimum": "OS *: Windows 7(SP1+) and above\nProcessor: x64 or x86\nMemory: 4 GB RAM\nDirectX: Version 10\nStorage: 600 MB available space",
-      "recommended": "مشخصات سیستم پیشنهادی ثبت نشده است."
-    },
-    "description_en": "This popular 2D puzzle-platformer creates the atmosphere of isolation, where the player alone can guide the nameless protagonist to his destination. Hostile environments and one-hit deaths may seem difficult, but the game implements a fair amount of checkpoints. The monochrome color palette showcases cartoony proportions of every living thing while making lack of details threatening. Limbo shows you exactly what you encounter, but never how it looks.\n\nLimbo uses the atmosphere and sound design of the horror genre while avoiding tropes of the modern horror games. The overarching theme and unique style compensated for the rather short game with an abrupt ending, making Limbo one of the most impactful games for the genre.\n\nThe simple controls and easy-to-pick-up mechanics help to make a clear distinction, which part of the stage players can interact with, and which part can lead to the quick death. Even though the game is in black and white, this separation is intuitive and natural, so the player would know exactly where to go or what to do.",
-    "description_fa": "توضیحات بازی (ترجمه ماشینی و خودکار):\nاین پلتفرم‌ساز معمایی دوبعدی محبوب، فضای انزوا را ایجاد می‌کند، جایی که بازیکن به تنهایی می‌تواند قهرمان بی‌نام را به مقصدش هدایت کند. محیط‌های خصمانه و مرگ‌های یک‌باره ممکن است دشوار به نظر برسند، اما بازی دارای تعداد قابل توجهی از نقاط بازرسی است. پالت رنگ تک رنگ نسبت های کارتونی هر موجود زنده را به نمایش می گذارد و در عین حال کمبود جزئیات را تهدید کننده می کند. Limbo دقیقاً به شما نشان می دهد که با چه چیزی روبرو می شوید، اما هرگز چگونه به نظر می رسد.\n\nLimbo از اتمسفر و طراحی صدای ژانر وحشت استفاده می کند و در عین حال از بازی های ترسناک مدرن دوری می کند. تم فراگیر و سبک منحصر به فرد، بازی نسبتاً کوتاه با پایانی ناگهانی را جبران کرد و Limbo را به یکی از تأثیرگذارترین بازی‌های این سبک تبدیل کرد.\n\nکنترل‌های ساده و مکانیک‌های آسان برای برداشتن به شما کمک می‌کند تا تمایز واضحی ایجاد کنید، کدام بخش از صحنه می‌تواند با آن تعامل داشته باشد و کدام بخش می‌تواند منجر به مرگ سریع شود. حتی اگر بازی سیاه و سفید است، این جداسازی بصری و طبیعی است، بنابراین بازیکن دقیقا می‌داند کجا برود یا چه کاری انجام دهد."
-  },
-  {
-    "id": 41494,
-    "name": "Cyberpunk 2077",
-    "background_image": "https://media.rawg.io/media/games/26d/26d4437715bee60138dab4a7c8c59c92.jpg",
-    "rating": 4.23,
-    "metacritic": 73,
-    "released": "2020-12-10",
-    "genres": [
-      {
-        "id": 2,
-        "name": "Shooter",
-        "slug": "shooter"
-      },
-      {
-        "id": 4,
-        "name": "Action",
-        "slug": "action"
-      },
-      {
-        "id": 5,
-        "name": "RPG",
-        "slug": "role-playing-games-rpg"
-      }
-    ],
-    "esrb_rating": "+17",
-    "playtime": 29,
-    "developers": "CD PROJEKT RED, CD PROJEKT",
-    "steam_link": "https://store.steampowered.com/search/?term=Cyberpunk%202077",
-    "trailer_url": "",
-    "youtube_videos": [],
-    "gallery": [
-      "https://media.rawg.io/media/screenshots/814/814c25d6fd1fd34a4e6dade645a3bda7.jpg",
-      "https://media.rawg.io/media/screenshots/2ab/2ab0b67e68b6ede6b19d80094b6f7f2a_qTSfS2g.jpg",
-      "https://media.rawg.io/media/screenshots/cd2/cd22af9d6ac593440defac6082760e4a.jpg",
-      "https://media.rawg.io/media/screenshots/9b5/9b51535beb9d9e416cb9aac874091334.jpg",
-      "https://media.rawg.io/media/screenshots/d84/d84d3a16c1e2cb24dcf73e0108d78455.jpg",
-      "https://media.rawg.io/media/screenshots/a55/a5583c11e4fd11a9eb5d52e8ddd41ac3.jpg"
-    ],
-    "requirements": {
-      "minimum": "OS: Windows 7 or 10 (64-bit)\r\n\r\nCPU: Intel Core i5-3570K or AMD FX-8310\r\n\r\nRAM: 8GB\r\n\r\nGPU: Nvidia GeForce GTX 780 3GB or AMD Radeon RX 470\r\n\r\nVRAM: 3GB\r\n\r\nDirect X: Version 12\r\n\r\nAvailable Storage Space: 70GB HDD \r\n\r\nGFX Setting Game Can Be Played On: Low",
-      "recommended": "OS: Windows 10 (64-bit)\r\n\r\nCPU: Intel Core i7-4790 or AMD Ryzen 3 3200G\r\n\r\nRAM: 12GB\r\n\r\nGPU: Nvidia GeForce GTX 1060 6GB, a GTX 1660 Super, or AMD Radeon RX 590\r\n\r\nVRAM: 6GB\r\n\r\nDirect X: Version 12\r\n\r\nAvailable Storage Space: 70GB SSD\r\n\r\nGFX Setting Game Can Be Played On: High"
-    },
-    "description_en": "Cyberpunk 2077 is a science fiction game loosely based on the role-playing game Cyberpunk 2020.\r\n\r\n###Setting\r\nThe game is set in the year 2077 in a fictional futuristic metropolis Night City in California. In the world of the game, there are developed cybernetic augmentations that enhance people's strength, agility, and memory. The city is governed by corporations. Many jobs are taken over by the robots, leaving a lot of people poor and homeless. Night City has a roaring underworld, with black markets, underground surgeons, drug dealers, and street gangs abound.\r\n\r\n###Characters\r\nThe main protagonist is fully customizable, including his or her sex and appearance, and goes by the nickname V. He or she is an underground mercenary who does “dirty business” for the various contractors. An NPC companion named Jackie joins the protagonist early at the game, and various other companions may join the player on certain missions as the plot demands. However, the game has no parties and no companion system.\r\n\r\n###Gameplay\r\nThe player controls V from the first person view, with the third-person view used for cutscenes only. The protagonist can travel across the city on feet or using various vehicles, in a manner some observers compared to GTA series. There are many options for the character customization, including three character classes, and a variety of augmentations V can install to enhance his or her abilities.",
-    "description_fa": "توضیحات بازی (ترجمه ماشینی و خودکار):\nCyberpunk 2077 یک بازی علمی تخیلی است که بر اساس بازی نقش آفرینی Cyberpunk 2020 ساخته شده است.\r\n\r\n###تنظیم\r\nداستان بازی در سال 2077 در یک کلان شهر خیالی آینده نگر در شهر شب در کالیفرنیا اتفاق می افتد. در دنیای بازی، تقویت‌کننده‌های سایبرنتیک توسعه‌یافته وجود دارد که قدرت، چابکی و حافظه افراد را افزایش می‌دهد. این شهر توسط شرکت ها اداره می شود. بسیاری از مشاغل توسط ربات ها تصاحب می شود و بسیاری از مردم فقیر و بی خانمان باقی می مانند. شهر شب دارای عالم اموات خروشان است که بازارهای سیاه، جراحان زیرزمینی، فروشندگان مواد مخدر و باندهای خیابانی فراوان است.\r\n\r\n###شخصیت ها\r\nقهرمان اصلی کاملاً قابل تنظیم است، از جمله جنسیت و ظاهرش، و با نام مستعار V. او یک مزدور زیرزمینی است که برای پیمانکاران مختلف \"تجارت کثیف\" انجام می دهد. یکی از همراهان NPC به نام جکی در اوایل بازی به قهرمان داستان می‌پیوندد و همراهان مختلف دیگری ممکن است در مأموریت‌های خاصی به بازیکن ملحق شوند. با این حال، بازی هیچ حزب و سیستم همراهی ندارد.\r\n\r\n###بازی\r\nبازیکن V را از دید اول شخص کنترل می کند و از نمای سوم شخص فقط برای کات سین ها استفاده می شود. قهرمان می تواند با پای پیاده یا با استفاده از وسایل نقلیه مختلف در سراسر شهر سفر کند، به شیوه ای که برخی ناظران با سری GTA مقایسه می کنند. گزینه‌های زیادی برای سفارشی‌سازی کاراکتر وجود دارد، از جمله سه کلاس کاراکتر، و انواع تقویت‌کننده‌هایی که V می‌تواند برای افزایش توانایی‌های خود نصب کند."
-  },
-  {
-    "id": 452650,
-    "name": "Pragmata",
-    "background_image": "https://media.rawg.io/media/games/9b2/9b20adbf00491d56ad6793654067f2fd.jpg",
-    "rating": 4.41,
-    "metacritic": null,
-    "released": "2026-04-17",
-    "genres": [
-      {
-        "id": 4,
-        "name": "Action",
-        "slug": "action"
-      }
-    ],
-    "esrb_rating": "---",
-    "playtime": 0,
-    "developers": "Capcom",
-    "steam_link": "https://store.steampowered.com/search/?term=Pragmata",
-    "trailer_url": "",
-    "youtube_videos": [],
-    "gallery": [
-      "https://media.rawg.io/media/screenshots/ca1/ca18d0aae36eb9111d699e5fc301792c.jpg",
-      "https://media.rawg.io/media/screenshots/bed/bed539410f44bb30d7ec90d5c3d3d79d.jpg",
-      "https://media.rawg.io/media/screenshots/4c7/4c78732f954103ddbc7919a7ea08042a.jpg",
-      "https://media.rawg.io/media/screenshots/70e/70e3a7485f7b31744c955213860f8a86.jpg",
-      "https://media.rawg.io/media/screenshots/075/075dcf7acab1045481d17b59c8b17192.jpg",
-      "https://media.rawg.io/media/screenshots/524/524ef9b98451f60200b5f6169577fe06_VxBdSyL.jpg",
-      "https://media.rawg.io/media/games/9b2/9b20adbf00491d56ad6793654067f2fd.jpg"
-    ],
-    "requirements": {
-      "minimum": "مشخصات حداقل سخت‌افزار ثبت نشده است.",
-      "recommended": "مشخصات سیستم پیشنهادی ثبت نشده است."
-    },
-    "description_en": "Capcom’s newest IP—PRAGMATA. An all-new Science Fiction action adventure with its own unique hacking twist!\nIt is the near future, and protagonists Hugh and his android companion Diana, must work together as they make their way through the cold lunar research station.",
-    "description_fa": "توضیحات بازی (ترجمه ماشینی و خودکار):\nجدیدترین IP Capcom—PRAGMATA. یک ماجراجویی اکشن علمی تخیلی کاملاً جدید با پیچ و تاب هک منحصر به فرد خود!\nاین آینده نزدیک است، و قهرمانان داستان، هیو و همراه اندرویدی اش دایانا، باید با هم کار کنند تا راه خود را از طریق ایستگاه تحقیقاتی سرد قمری طی کنند."
-  }
-]
+    } catch (err) {
+      console.error("خطا در صف:", err);
+      setMessage({ text: '❌ خطا در ارتباط با سرورها.', isError: true });
+    } finally {
+      setQueue((prev) => prev.slice(1));
+      setIsProcessingQueue(false);
+    }
+  }, [githubToken, myGames, fileSha, queue]); // وابستگی‌ها اصلاح شد
+
+  // اصلاح این بخش برای استفاده از تابع بهینه‌شده
+  useEffect(() => {
+    if (queue.length > 0 && !isProcessingQueue) {
+      processNextQueueTask();
+    }
+  }, [queue, isProcessingQueue, processNextQueueTask]);
+
+  const displayedGames = viewMode === 'SEARCH' ? searchResults : myGames;
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-12" dir="rtl">
+      {!isLoggedIn ? (
+        <div className="min-h-screen text-slate-100 flex items-center justify-center p-6">
+          <form onSubmit={handleLogin} className="bg-slate-900 border border-slate-800 p-8 rounded-2xl w-full max-w-md space-y-5">
+            <div className="text-center space-y-2 mb-4">
+              <h2 className="text-xl font-black text-white">🔒 ورود به پنل مدیریت آرشیو</h2>
+              <p className="text-[11px] text-slate-400 font-medium">کلید دسترسی گیت‌هاب (Token) را وارد کنید.</p>
+            </div>
+            {loginError && <div className="p-3 bg-red-500/10 text-red-400 text-xs font-bold rounded-xl text-center border border-red-900/30">{loginError}</div>}
+            <div className="space-y-1.5">
+              <label className="text-xs text-slate-400 font-bold">توکن گیت‌هاب:</label>
+              <input 
+                type="password" 
+                value={githubToken} 
+                onChange={(e) => setGithubToken(e.target.value)} 
+                className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none text-left tracking-wider text-purple-400 focus:border-purple-600 transition" 
+                dir="ltr" 
+                placeholder="ghp_..." 
+                required
+              />
+            </div>
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-sm transition disabled:opacity-50"
+            >
+              {loading ? 'در حال بررسی...' : 'ورود به پنل'}
+            </button>
+          </form>
+        </div>
+      ) : (
+        <div className="max-w-5xl mx-auto">
+          <header className="flex justify-between items-center mb-8 border-b border-slate-900 pb-4">
+            <div className="flex items-center gap-4">
+              <h1 className="text-lg font-black text-white">🎮 کنترل پنل هوشمند آرشیو</h1>
+              <button onClick={handleLogout} className="text-xs bg-red-950/40 border border-red-900/60 hover:bg-red-900 text-red-400 hover:text-white px-3 py-1.5 rounded-xl transition font-bold">🚪 خروج</button>
+            </div>
+            {queue.length > 0 && (
+              <div className="text-xs bg-purple-950/60 border border-purple-800/80 text-purple-300 px-3 py-1.5 rounded-xl animate-pulse font-mono">
+                ⏳ صف پردازش: {queue.length}
+              </div>
+            )}
+            <Link href="/" className="text-xs text-purple-400 bg-purple-950/40 border border-purple-900/60 px-4 py-2 rounded-xl">➔ صفحه اصلی سایت</Link>
+          </header>
+
+          <div className="flex gap-4 mb-6">
+            <button 
+              onClick={() => setViewMode('SEARCH')}
+              className={`flex-1 py-3 rounded-xl text-sm font-bold transition border ${viewMode === 'SEARCH' ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-900/20' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800'}`}
+            >
+              🔍 جستجوی بازی جدید
+            </button>
+            <button 
+              onClick={() => setViewMode('ARCHIVE')}
+              className={`flex-1 py-3 rounded-xl text-sm font-bold transition border ${viewMode === 'ARCHIVE' ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-900/20' : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800'}`}
+            >
+              🗂️ بازی‌های من ({myGames.length})
+            </button>
+          </div>
+
+          {viewMode === 'SEARCH' && (
+            <div className="bg-slate-900/50 border border-slate-900 p-4 rounded-xl mb-6 flex gap-2">
+              <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="نام بازی..." className="flex-1 p-3 bg-slate-950 border border-slate-800 rounded-xl text-sm outline-none text-left" dir="ltr" />
+              <button onClick={handleSearch} className="px-6 bg-purple-600 hover:bg-purple-700 rounded-xl text-sm font-bold">جستجو</button>
+            </div>
+          )}
+
+          {message.text && <div className={`p-3 rounded-lg text-xs font-bold mb-6 text-center ${message.isError ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400'}`}>{message.text}</div>}
+
+          {viewMode === 'ARCHIVE' && displayedGames.length === 0 && (
+            <div className="text-center py-12 text-slate-500 font-bold text-sm bg-slate-900/30 rounded-2xl border border-slate-800/50">
+              بازی‌ای در آرشیو موجود نیست.
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {displayedGames.map((game) => {
+              const isAlreadyAdded = myGames.some((g) => g.id === game.id);
+              const isTaskInQueue = queue.some((q) => q.game?.id === game.id || q.gameId === game.id);
+              
+              return (
+                <div key={game.id} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden flex flex-col justify-between shadow-lg">
+                  <img src={getOptimizedUrl(game.background_image, 400)} alt={game.name} className="w-full h-40 object-cover" />
+                  <div className="p-4 flex flex-col justify-between flex-1 space-y-4">
+                    <h3 className="font-bold text-sm text-white text-left truncate" dir="ltr">{game.name}</h3>
+                    
+                    {isTaskInQueue ? (
+                      <button disabled className="w-full py-2 bg-slate-800 text-slate-400 border border-slate-700 rounded-xl text-xs font-bold animate-pulse cursor-not-allowed">
+                        ⏳ در صف پردازش...
+                      </button>
+                    ) : isAlreadyAdded ? (
+                      <div className="flex flex-col gap-2 w-full">
+                        <div className="flex gap-2 w-full">
+                          <button onClick={() => handleFixGame(game)} className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs transition font-bold">🔄 فیکس مجدد</button>
+                          <button onClick={() => handleRemoveGame(game.id, game.name)} className="px-3 py-2 bg-red-950/40 border border-red-900 text-red-400 hover:bg-red-600 hover:text-white rounded-xl text-xs transition font-bold">❌ حذف</button>
+                        </div>
+                        <button onClick={() => handleEditGame(game)} className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-[11px] transition font-bold">✏️ ویرایش/اصلاح لینک استیم دستی</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => handleAddGame(game)} className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs transition font-bold">＋ افزودن به آرشیو</button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

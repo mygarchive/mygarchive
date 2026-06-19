@@ -336,10 +336,17 @@ function GameDetailContent() {
             >
               <h3 className="font-black text-base mb-2 pb-2" style={{ color: themeStyles.titleText, borderBottom: `1px solid ${darkMode ? '#020617' : '#f1f5f9'}` }}>📊 اطلاعات عمومی</h3>
               <p>🗓️ تاریخ انتشار: <span className="font-bold" style={{ color: themeStyles.titleText }}>{game?.released || '---'}</span></p>
-              <p>⭐ امتیاز منتقدین: <span className="text-purple-500 font-bold">{game?.rating || '---'} / 5</span></p>
+              
+              {/* نمایش نمره منتقدین متاکریتیک (رسانه‌ها) */}
+              {game?.metacritic ? (
+                <p>🎯 امتیاز منتقدین (متاکریتیک): <span className="text-green-500 font-bold">{game.metacritic} / 100</span></p>
+              ) : (
+                <p>🎯 امتیاز منتقدین (متاکریتیک): <span className="text-slate-400 font-bold">نامشخص</span></p>
+              )}
+
               <p>🔞 رده سنی: <span className="text-red-500 font-bold" dir="ltr">{game?.esrb_rating || '---'}</span></p>
               <p>🏢 سازنده/ناشر: <span style={{ color: themeStyles.titleText }} dir="ltr">{game?.developers || '---'}</span></p>
-              <p>⏱️ زمان اتمام: <span className="text-green-500 font-bold">{game?.playtime || '---'} ساعت</span></p>
+              <p>⏱️ زمان اتمام: <span className="text-blue-500 font-bold">{game?.playtime || '---'} ساعت</span></p>
               
               {validSteamUrl && (
                 <div className="pt-2">
@@ -367,63 +374,65 @@ function GameDetailContent() {
         </p>
       </footer>
 
-      {activePhotoIndex !== null && game.gallery && (
-        <div 
-          className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-2 md:p-6 select-none" 
-          onClick={() => setActivePhotoIndex(null)}
-        >
-          <div 
-            className="w-full max-w-[92vw] h-[75vh] max-h-[75vh] relative flex items-center justify-center" 
-            onClick={(e) => e.stopPropagation()}
-            onTouchMove={handleTouchMove}
-          >
-            <div
-              className="w-full h-full flex items-center justify-center"
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-            >
-              <img 
-                src={getOptimizedUrl(game.gallery[activePhotoIndex], 1400)} 
-                alt="Expanded preview" 
-                className="w-full h-full object-contain rounded-xl shadow-2xl transition-all" 
-                draggable="false"
-              />
-            </div>
-          </div>
-
-          <div 
-            className="flex items-center gap-5 mt-6 bg-slate-900/90 px-6 py-3.5 rounded-2xl border border-slate-800 backdrop-blur-md shadow-2xl" 
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button 
-              onClick={() => setActivePhotoIndex(activePhotoIndex === 0 ? game.gallery.length - 1 : activePhotoIndex - 1)}
-              className="text-white hover:text-purple-400 bg-slate-800 hover:bg-slate-700 transition font-black text-xl w-14 h-12 flex items-center justify-center rounded-xl border border-slate-700 active:scale-90"
-            >
-              ➔
-            </button>
-
-            <span className="text-sm font-mono font-bold text-slate-300 bg-slate-950 px-3.5 py-1.5 rounded-lg border border-slate-900 min-w-[60px] text-center">
-              {activePhotoIndex + 1} / {Math.min(game.gallery.length, 10)}
-            </span>
-
-            <button 
-              onClick={() => setActivePhotoIndex(null)} 
-              className="px-6 h-12 bg-red-600 hover:bg-red-500 text-white rounded-xl text-sm font-extrabold transition border border-red-700 active:scale-90"
-            >
-              بستن ×
-            </button>
-
-            <button 
-              onClick={() => setActivePhotoIndex(activePhotoIndex === game.gallery.length - 1 ? 0 : activePhotoIndex + 1)}
-              className="text-white hover:text-purple-400 bg-slate-800 hover:bg-slate-700 transition font-black text-xl w-14 h-12 flex items-center justify-center rounded-xl border border-slate-700 active:scale-90"
-            >
-              ←
-            </button>
-          </div>
-        </div>
-      )}
+      {activePhotoModalRender(activePhotoIndex, game, setActivePhotoIndex, handleTouchMoveHandler, TouchStartHandler, TouchEndHandler)}
     </div>
   );
+}
+
+// توابع کمکی برای جلوگیری از شلوغی
+function PhotoModalRender(activePhotoIndex: any, game: any, setActivePhotoIndex: any, handleTouchMoveHandler:any, TouchStartHandler:any, TouchEndHandler:any) {
+  if (activePhotoIndex === null || !game.gallery) return null;
+  return (
+    <div 
+      className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-2 md:p-6 select-none" 
+      onClick={() => setActivePhotoIndex(null)}
+    >
+      <div 
+        className="w-full max-w-[92vw] h-[75vh] max-h-[75vh] relative flex items-center justify-center" 
+        onClick={(e) => e.stopPropagation()}
+        onTouchMove={TouchMoveHandler}
+      >
+        <div className="w-full h-full flex items-center justify-center" onTouchStart={TouchStartHandler} onTouchEnd={TouchEndHandler}>
+          <img 
+            src={`https://images.weserv.nl/?url=${encodeURIComponent(game.gallery[activePhotoIndex].replace(/^https?:\/\//i, ''))}&w=1400&q=80`} 
+            alt="Expanded preview" 
+            className="w-full h-full object-contain rounded-xl shadow-2xl transition-all" 
+            draggable="false"
+          />
+        </div>
+      </div>
+
+      <div 
+        className="flex items-center gap-5 mt-6 bg-slate-900/90 px-6 py-3.5 rounded-2xl border border-slate-800 backdrop-blur-md shadow-2xl" 
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button 
+          onClick={() => setActivePhotoIndex(activePhotoIndex === 0 ? game.gallery.length - 1 : activePhotoIndex - 1)}
+          className="text-white hover:text-purple-400 bg-slate-800 hover:bg-slate-700 transition font-black text-xl w-14 h-12 flex items-center justify-center rounded-xl border border-slate-700 active:scale-90"
+        >
+          ➔
+        </button>
+
+        <span className="text-sm font-mono font-bold text-slate-300 bg-slate-950 px-3.5 py-1.5 rounded-lg border border-slate-900 min-w-[60px] text-center">
+          {activePhotoIndex + 1} / {Math.min(game.gallery.length, 10)}
+        </span>
+
+        <button 
+          onClick={() => setActivePhotoIndex(null)} 
+          className="px-6 h-12 bg-red-600 hover:bg-red-500 text-white rounded-xl text-sm font-extrabold transition border border-red-700 active:scale-90"
+        >
+          بستن ×
+        </button>
+
+        <button 
+          onClick={() => setActivePhotoIndex(activePhotoIndex === game.gallery.length - 1 ? 0 : activePhotoIndex + 1)}
+          className="text-white hover:text-purple-400 bg-slate-800 hover:bg-slate-700 transition font-black text-xl w-14 h-12 flex items-center justify-center rounded-xl border border-slate-700 active:scale-90"
+        >
+          ←
+        </button>
+      </div>
+    </div>
+  )
 }
 
 export default function GameDetailPage() {

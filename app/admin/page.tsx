@@ -41,7 +41,6 @@ export default function AdminPanel() {
   const [queue, setQueue] = useState<QueueTask[]>([]);
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
 
-  // 🛠️ استیت مدیریت بازی در حال ویرایش (CMS)
   const [editingGame, setEditingGame] = useState<any | null>(null);
 
   const getOptimizedUrl = (url: string, width = 400) => {
@@ -50,7 +49,8 @@ export default function AdminPanel() {
     return `https://images.weserv.nl/?url=${encodeURIComponent(cleanUrl)}&w=${width}&q=80`;
   };
 
-  const getSteamIdFromSteam = async (gameName: string): Promise<string | null> => {
+  // 🛠️ تعریف متد با استفاده از useCallback برای قرارگیری در دپندسی صف بدون رندر مداوم
+  const getSteamIdFromSteam = useCallback(async (gameName: string): Promise<string | null> => {
     try {
       const searchUrl = `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(gameName)}&l=english&cc=US`;
       const data = await fetchSmartRoute(searchUrl, true);
@@ -61,7 +61,7 @@ export default function AdminPanel() {
       console.error("خطا در جستجوی استیم:", e);
     }
     return null;
-  };
+  }, []);
 
   useEffect(() => {
     const savedToken = localStorage.getItem('gh_token');
@@ -423,7 +423,7 @@ export default function AdminPanel() {
       setQueue((prev) => prev.slice(1));
       setIsProcessingQueue(false);
     }
-  }, [githubToken, myGames, fileSha, queue]);
+  }, [githubToken, myGames, fileSha, queue, getSteamIdFromSteam]); // 🛠️ رفع ارور دپندسی useCallback
 
   useEffect(() => {
     if (queue.length > 0 && !isProcessingQueue) {
@@ -705,7 +705,8 @@ export default function AdminPanel() {
                         <button onClick={() => handleEditGame(game)} className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-[11px] transition font-bold">✏️ ویرایش کامل اطلاعات و مدیریت تصاویر</button>
                       </div>
                     ) : (
-                      <button onClick={() => addGame(game)} className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs transition font-bold">＋ افزودن به آرشیو</button>
+                      // 🛠️ فیکس نهایی ارور کامپایل دکمه افزودن آرشیو:
+                      <button onClick={() => handleAddGame(game)} className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs transition font-bold">＋ افزودن به آرشیو</button>
                     )}
                   </div>
                 </div>

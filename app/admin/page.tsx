@@ -41,13 +41,15 @@ export default function AdminPanel() {
   const [queue, setQueue] = useState<QueueTask[]>([]);
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
 
+  // 🛠️ استیت جدید برای مدیریت بازی در حال ویرایش
+  const [editingGame, setEditingGame] = useState<any | null>(null);
+
   const getOptimizedUrl = (url: string, width = 400) => {
     if (!url) return '';
     const cleanUrl = url.replace(/^https?:\/\//i, '');
     return `https://images.weserv.nl/?url=${encodeURIComponent(cleanUrl)}&w=${width}&q=80`;
   };
 
-  // تابع جستجوی هوشمند آیدی استیم از API استیم
   const getSteamIdFromSteam = async (gameName: string): Promise<string | null> => {
     try {
       const searchUrl = `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(gameName)}&l=english&cc=US`;
@@ -69,9 +71,7 @@ export default function AdminPanel() {
     }
   }, []);
 
-  // سیستم چند لایه پروکسی ارتقا یافته برای دور زدن تحریم RAWG بدون نیاز به VPN
   const fetchSmartRoute = async (targetUrl: string, parseAllOrigins = false) => {
-    // 🚀 لایه اول: پروکسی اختصاصی و شخصی شما روی کلادفلر (بدون فیلتر و تحریم)
     try {
       const myWorkerUrl = `https://rawg-proxy.hossein-hf273.workers.dev/?url=${encodeURIComponent(targetUrl)}`;
       const res = await fetch(myWorkerUrl);
@@ -80,7 +80,6 @@ export default function AdminPanel() {
       console.warn("پروکسی اختصاصی کلادفلر ناموفق بود، سوئیچ به پروکسی‌های پشتیبان...");
     }
 
-    // لایه دوم پشتیبان: پروکسی CodeTabs
     try {
       const res = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`);
       if (res.ok) return await res.json();
@@ -88,7 +87,6 @@ export default function AdminPanel() {
       console.warn("پروکسی CodeTabs ناموفق بود...");
     }
 
-    // لایه سوم پشتیبان: پروکسی Corsproxy.io
     try {
       const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(targetUrl)}`);
       if (res.ok) return await res.json();
@@ -96,7 +94,6 @@ export default function AdminPanel() {
       console.warn("پروکسی Corsproxy ناموفق بود...");
     }
 
-    // لایه چهارم پشتیبان: پروکسی AllOrigins
     try {
       const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`);
       if (res.ok) {
@@ -107,7 +104,6 @@ export default function AdminPanel() {
       console.warn("پروکسی AllOrigins ناموفق بود...");
     }
 
-    // تلاش مستقیم (آخرین راه حل با وی‌پاین)
     const directRes = await fetch(targetUrl);
     if (directRes.ok) return await directRes.json();
     
@@ -148,6 +144,7 @@ export default function AdminPanel() {
     setMyGames([]);
     setSearchResults([]);
     setQueue([]);
+    setEditingGame(null);
     setMessage({ text: 'با موفقیت از پنل خارج شدید.', isError: false });
   };
 
@@ -175,6 +172,7 @@ export default function AdminPanel() {
     if (!searchQuery) return;
     setLoading(true);
     setViewMode('SEARCH');
+    setEditingGame(null); // بستن فرم ادیت موقع سرچ جدید
     try {
       const targetUrl = `https://api.rawg.io/api/games?key=${RAWG_API_KEY}&search=${encodeURIComponent(searchQuery)}&page_size=24`;
       const data = await fetchSmartRoute(targetUrl, true);
@@ -183,6 +181,7 @@ export default function AdminPanel() {
       console.error("خطای سیستم جستجو:", err); 
       setMessage({ text: 'خطا در برقراری ارتباط با سرور RAWG (تمامی پروکسی‌ها مسدود هستند).', isError: true });
     }
+    loading && setLoading(false);
     setLoading(false);
   };
 
@@ -196,28 +195,41 @@ export default function AdminPanel() {
     setMessage({ text: `درخواست به‌روزرسانی/فیکس "${game.name}" به صف اضافه شد.`, isError: false });
   };
 
-  const handleEditGame = async (game: any) => {
-    const choice = window.confirm("آیا می‌خواهید آیدی استیم را به صورت خودکار جستجو کنم؟ (Cancel برای ورود دستی)");
-    let newSteamLink = "";
+  // 🛠️ تابع جدید بارگذاری بازی در فرم ویرایش کامل
+  const handleEditGame = (game: any) => {
+    // پیدا کردن اطلاعات کامل بازی موجود در آرشیو
+    const fullGameData = myGames.find((g) => g.id === game.id) || game;
+    setEditingGame(JSON.parse(JSON.stringify(fullGameData))); // کلون عمیق برای عدم تغییر مستقیم استیت آرشیو قبل از تایید
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
-    if (choice) {
-      setMessage({ text: `⏳ در حال جستجوی خودکار آیدی برای "${game.name}"...`, isError: false });
-      const steamId = await getSteamIdFromSteam(game.name);
-      if (steamId) {
-        newSteamLink = `https://store.steampowered.com/app/${steamId}/`;
-      } else {
-        alert("متاسفانه آیدی پیدا نشد. لطفاً لینک را دستی وارد کنید.");
-        return;
-      }
-    } else {
-      const manualInput = window.prompt("لینک استیم را وارد کنید:", game.steam_link || "");
-      if (manualInput === null) return;
-      newSteamLink = manualInput;
-    }
+  // 🛠️ تابع مدیریت تغییرات در فیلدهای فرم ادیتور
+  const handleEditFieldChange = (field: string, value: any) => {
+    if (!editingGame) return;
+    setEditingGame({
+      ...editingGame,
+      [field]: value
+    });
+  };
 
-    const overrideData = { steam_link: newSteamLink.trim() };
-    setQueue((prev) => [...prev, { type: 'UPDATE', game, overrideData }]);
-    setMessage({ text: `درخواست اصلاح لینک "${game.name}" ثبت شد.`, isError: false });
+  // 🛠️ تابع حذف یک تصویر خاص از گالری
+  const handleRemoveGalleryImage = (imgUrl: string) => {
+    if (!editingGame) return;
+    const updatedGallery = (editingGame.gallery || []).filter((img: string) => img !== imgUrl);
+    setEditingGame({
+      ...editingGame,
+      gallery: updatedGallery
+    });
+  };
+
+  // 🛠️ تابع ثبت فرم ویرایش کامل و فرستادن به صف گیت‌هاب
+  const handleSaveFullEdit = () => {
+    if (!editingGame) return;
+    
+    // ارسال کل داده‌های تغییر یافته به عنوان overrideData به صف
+    setQueue((prev) => [...prev, { type: 'UPDATE', game: editingGame, overrideData: editingGame }]);
+    setMessage({ text: `درخواست اعمال ویرایش کامل "${editingGame.name}" به صف گیت‌هاب اضافه شد.`, isError: false });
+    setEditingGame(null);
   };
 
   const handleRemoveGame = (gameId: number, gameName: string) => {
@@ -291,7 +303,6 @@ export default function AdminPanel() {
 
         const metacriticScore = details.metacritic || null;
 
-        // منطق جدید استیم
         let steamUrl = '';
         const steamId = await getSteamIdFromSteam(game.name);
         
@@ -374,10 +385,11 @@ export default function AdminPanel() {
         }
 
       } else if (type === 'UPDATE') {
-        setMessage({ text: `⏳ در حال اعمال اصلاحیه برای "${game.name}"...`, isError: false });
+        setMessage({ text: `⏳ در حال اعمال اصلاحیه جامع برای "${game.name}"...`, isError: false });
 
         const targetGameIdx = currentGamesList.findIndex((g: any) => g.id === game.id);
         if (targetGameIdx !== -1) {
+          // جایگذاری کل آبجکت ویرایش شده با دیتای قبلی
           currentGamesList[targetGameIdx] = {
             ...currentGamesList[targetGameIdx],
             ...overrideData
@@ -386,14 +398,14 @@ export default function AdminPanel() {
           const res = await fetch(`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/data/games.json`, {
             method: 'PUT',
             headers: { 'Authorization': `token ${githubToken}`, 'Content-Type': 'application/json', 'Accept': 'application/vnd.github.v3+json' },
-            body: JSON.stringify({ message: `Manual Edit ${game.name}`, content: safeBtoa(JSON.stringify(currentGamesList, null, 2)), sha: currentSha })
+            body: JSON.stringify({ message: `CMS Manual Edit ${game.name}`, content: safeBtoa(JSON.stringify(currentGamesList, null, 2)), sha: currentSha })
           });
 
           if (res.status === 200 || res.status === 201) {
             const resData = await res.json();
             setFileSha(resData.content.sha);
             setMyGames(currentGamesList);
-            setMessage({ text: `✅ اصلاحیه بازی "${game.name}" با موفقیت اعمال و ذخیره شد.`, isError: false });
+            setMessage({ text: `✅ اصلاحات کامل بازی "${game.name}" با موفقیت روی گیت‌هاب اعمال شد.`, isError: false });
           } else {
             setMessage({ text: '❌ خطا در اعمال اصلاحیه.', isError: true });
           }
@@ -482,6 +494,79 @@ export default function AdminPanel() {
             <Link href="/" className="text-xs text-purple-400 bg-purple-950/40 border border-purple-900/60 px-4 py-2 rounded-xl">➔ صفحه اصلی سایت</Link>
           </header>
 
+          {/* 🛠️ بخش جدید: فرم ادیتور هوشمند و کامل بازی (وقتی کامپوننت اکتیو است بالا لود می‌شود) */}
+          {editingGame && (
+            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl mb-8 space-y-6 shadow-xl animate-fadeIn">
+              <div className="flex justify-between items-center pb-3 border-b border-slate-800">
+                <h3 className="text-sm font-black text-purple-400">📝 ویرایش کامل اطلاعات: {editingGame.name}</h3>
+                <button 
+                  onClick={() => setEditingGame(null)} 
+                  className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-400 px-3 py-1.5 rounded-xl font-bold"
+                >
+                  انصراف ✕
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs text-slate-400 font-bold mb-1.5">نام بازی:</label>
+                  <input type="text" value={editingGame.name || ''} onChange={(e) => handleEditFieldChange('name', e.target.value)} className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none text-left font-bold" dir="ltr" />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-400 font-bold mb-1.5">امتیاز (Rating):</label>
+                  <input type="number" step="0.01" value={editingGame.rating || ''} onChange={(e) => handleEditFieldChange('rating', parseFloat(e.target.value))} className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none text-left" dir="ltr" />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-400 font-bold mb-1.5">امتیاز متاتقد (Metacritic):</label>
+                  <input type="number" value={editingGame.metacritic || ''} onChange={(e) => handleEditFieldChange('metacritic', parseInt(e.target.value))} className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none text-left" dir="ltr" />
+                </div>
+
+                <div className="md:col-span-3">
+                  <label className="block text-xs text-slate-400 font-bold mb-1.5">لینک استیم:</label>
+                  <input type="text" value={editingGame.steam_link || ''} onChange={(e) => handleEditFieldChange('steam_link', e.target.value)} className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none text-left text-blue-400 font-mono" dir="ltr" />
+                </div>
+
+                <div className="md:col-span-3">
+                  <label className="block text-xs text-slate-400 font-bold mb-1.5">توضیحات فارسی سایت:</label>
+                  <textarea rows={5} value={editingGame.description_fa || ''} onChange={(e) => handleEditFieldChange('description_fa', e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none leading-6 text-slate-300" />
+                </div>
+
+                <div className="md:col-span-3">
+                  <label className="block text-xs text-slate-400 font-bold mb-1.5">توضیحات انگلیسی (English Description):</label>
+                  <textarea rows={4} value={editingGame.description_en || ''} onChange={(e) => handleEditFieldChange('description_en', e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none leading-6 text-slate-400 text-left" dir="ltr" />
+                </div>
+              </div>
+
+              {/* 📸 مدیریت گالری تصاویر به همراه دکمه حذف تک‌تک تصاویر */}
+              <div className="border-t border-slate-800 pt-4">
+                <label className="block text-xs text-purple-400 font-bold mb-3">📸 مدیریت گالری تصاویر آرشیو (کلیک روی ✕ جهت حذف):</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                  {editingGame.gallery?.map((imgUrl: string, idx: number) => (
+                    <div key={idx} className="relative aspect-video rounded-xl overflow-hidden group border border-slate-800 bg-slate-950">
+                      <img src={getOptimizedUrl(imgUrl, 200)} alt="گالری" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition" />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveGalleryImage(imgUrl)}
+                        className="absolute top-1 right-1 bg-red-600/90 hover:bg-red-500 text-white w-5 h-5 rounded-full flex items-center justify-center text-[10px] shadow-md transition transform hover:scale-110"
+                        title="حذف این عکس"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                  {(!editingGame.gallery || editingGame.gallery.length === 0) && (
+                    <p className="text-xs text-slate-500 col-span-full">عکسی در گالری این بازی ثبت نشده است.</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 border-t border-slate-800 pt-4">
+                <button onClick={() => setEditingGame(null)} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition">انصراف</button>
+                <button onClick={handleSaveFullEdit} className="px-5 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-purple-900/30">✔ ثبت تغییرات بازی در صف</button>
+              </div>
+            </div>
+          )}
+
           <div className="flex gap-4 mb-6">
             <button 
               onClick={() => setViewMode('SEARCH')}
@@ -522,9 +607,8 @@ export default function AdminPanel() {
                   <img 
                     src={getOptimizedUrl(game.background_image, 400)} 
                     alt={game.name} 
-                    // 🔥 چتر نجات تصاویر: اگر به هر دلیلی عکس لود نشد، سوئیچ روی ورکر کلادفلر شما
                     onError={(e) => {
-                      e.currentTarget.onerror = null; // جلوگیری از افتادن در لوپ بی‌نهایت
+                      e.currentTarget.onerror = null;
                       e.currentTarget.src = `https://rawg-proxy.hossein-hf273.workers.dev/?url=${encodeURIComponent(game.background_image)}`;
                     }}
                     className="w-full h-40 object-cover" 
@@ -542,7 +626,8 @@ export default function AdminPanel() {
                           <button onClick={() => handleFixGame(game)} className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs transition font-bold">🔄 فیکس مجدد</button>
                           <button onClick={() => handleRemoveGame(game.id, game.name)} className="px-3 py-2 bg-red-950/40 border border-red-900 text-red-400 hover:bg-red-600 hover:text-white rounded-xl text-xs transition font-bold">❌ حذف</button>
                         </div>
-                        <button onClick={() => handleEditGame(game)} className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-[11px] transition font-bold">✏️ ویرایش/اصلاح لینک استیم دستی</button>
+                        {/* 🛠️ دکمه ادیت قدیمی ویرایش شد و حالا فرم جامع را باز می‌کند */}
+                        <button onClick={() => handleEditGame(game)} className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-[11px] transition font-bold">✏️ ویرایش کامل اطلاعات و مدیریت تصاویر</button>
                       </div>
                     ) : (
                       <button onClick={() => handleAddGame(game)} className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs transition font-bold">＋ افزودن به آرشیو</button>

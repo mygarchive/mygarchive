@@ -385,7 +385,15 @@ export default function Home() {
             className="mt-6 pt-4 text-center text-[10px] tracking-wide font-mono opacity-80"
             style={{ borderTop: `1px dashed ${themeStyles.border}`, color: themeStyles.subText }}
           >
-            Developed with <span className="text-purple-500 animate-pulse">💜</span> by Gemini
+            Developed with <span className="text-purple-500 animate-pulse">💜</span> by{' '}
+<a 
+  href="https://gemini.google.com" 
+  target="_blank" 
+  rel="noopener noreferrer" 
+  className="text-purple-500 font-bold hover:underline"
+>
+  Gemini
+</a>
           </div>
 
         </div>

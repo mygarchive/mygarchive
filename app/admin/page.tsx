@@ -41,7 +41,7 @@ export default function AdminPanel() {
   const [queue, setQueue] = useState<QueueTask[]>([]);
   const [isProcessingQueue, setIsProcessingQueue] = useState(false);
 
-  // 🛠️ استیت جدید برای مدیریت بازی در حال ویرایش
+  // 🛠️ استیت مدیریت بازی در حال ویرایش (CMS)
   const [editingGame, setEditingGame] = useState<any | null>(null);
 
   const getOptimizedUrl = (url: string, width = 400) => {
@@ -172,7 +172,7 @@ export default function AdminPanel() {
     if (!searchQuery) return;
     setLoading(true);
     setViewMode('SEARCH');
-    setEditingGame(null); // بستن فرم ادیت موقع سرچ جدید
+    setEditingGame(null); 
     try {
       const targetUrl = `https://api.rawg.io/api/games?key=${RAWG_API_KEY}&search=${encodeURIComponent(searchQuery)}&page_size=24`;
       const data = await fetchSmartRoute(targetUrl, true);
@@ -181,7 +181,6 @@ export default function AdminPanel() {
       console.error("خطای سیستم جستجو:", err); 
       setMessage({ text: 'خطا در برقراری ارتباط با سرور RAWG (تمامی پروکسی‌ها مسدود هستند).', isError: true });
     }
-    loading && setLoading(false);
     setLoading(false);
   };
 
@@ -195,38 +194,28 @@ export default function AdminPanel() {
     setMessage({ text: `درخواست به‌روزرسانی/فیکس "${game.name}" به صف اضافه شد.`, isError: false });
   };
 
-  // 🛠️ تابع جدید بارگذاری بازی در فرم ویرایش کامل
+  // 🛠️ باز کردن فرم ویرایش جامع مدیریت محتوا
   const handleEditGame = (game: any) => {
-    // پیدا کردن اطلاعات کامل بازی موجود در آرشیو
     const fullGameData = myGames.find((g) => g.id === game.id) || game;
-    setEditingGame(JSON.parse(JSON.stringify(fullGameData))); // کلون عمیق برای عدم تغییر مستقیم استیت آرشیو قبل از تایید
+    setEditingGame(JSON.parse(JSON.stringify(fullGameData))); 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // 🛠️ تابع مدیریت تغییرات در فیلدهای فرم ادیتور
   const handleEditFieldChange = (field: string, value: any) => {
     if (!editingGame) return;
-    setEditingGame({
-      ...editingGame,
-      [field]: value
-    });
+    setEditingGame({ ...editingGame, [field]: value });
   };
 
-  // 🛠️ تابع حذف یک تصویر خاص از گالری
+  // 🛠️ مدیریت داینامیک حذف عکس از گالری
   const handleRemoveGalleryImage = (imgUrl: string) => {
     if (!editingGame) return;
     const updatedGallery = (editingGame.gallery || []).filter((img: string) => img !== imgUrl);
-    setEditingGame({
-      ...editingGame,
-      gallery: updatedGallery
-    });
+    setEditingGame({ ...editingGame, gallery: updatedGallery });
   };
 
-  // 🛠️ تابع ثبت فرم ویرایش کامل و فرستادن به صف گیت‌هاب
+  // 🛠️ ارسال اطلاعات تغییریافته کل فیلدها به صف گیت‌هاب
   const handleSaveFullEdit = () => {
     if (!editingGame) return;
-    
-    // ارسال کل داده‌های تغییر یافته به عنوان overrideData به صف
     setQueue((prev) => [...prev, { type: 'UPDATE', game: editingGame, overrideData: editingGame }]);
     setMessage({ text: `درخواست اعمال ویرایش کامل "${editingGame.name}" به صف گیت‌هاب اضافه شد.`, isError: false });
     setEditingGame(null);
@@ -389,7 +378,6 @@ export default function AdminPanel() {
 
         const targetGameIdx = currentGamesList.findIndex((g: any) => g.id === game.id);
         if (targetGameIdx !== -1) {
-          // جایگذاری کل آبجکت ویرایش شده با دیتای قبلی
           currentGamesList[targetGameIdx] = {
             ...currentGamesList[targetGameIdx],
             ...overrideData
@@ -494,7 +482,7 @@ export default function AdminPanel() {
             <Link href="/" className="text-xs text-purple-400 bg-purple-950/40 border border-purple-900/60 px-4 py-2 rounded-xl">➔ صفحه اصلی سایت</Link>
           </header>
 
-          {/* 🛠️ بخش جدید: فرم ادیتور هوشمند و کامل بازی (وقتی کامپوننت اکتیو است بالا لود می‌شود) */}
+          {/* 🛠️ بخش فرم ادیتور هوشمند و کامل بازی (CMS) */}
           {editingGame && (
             <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl mb-8 space-y-6 shadow-xl animate-fadeIn">
               <div className="flex justify-between items-center pb-3 border-b border-slate-800">
@@ -513,12 +501,21 @@ export default function AdminPanel() {
                   <input type="text" value={editingGame.name || ''} onChange={(e) => handleEditFieldChange('name', e.target.value)} className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none text-left font-bold" dir="ltr" />
                 </div>
                 <div>
-                  <label className="block text-xs text-slate-400 font-bold mb-1.5">امتیاز (Rating):</label>
+                  <label className="block text-xs text-slate-400 font-bold mb-1.5">امتیاز کاربران (Rating):</label>
                   <input type="number" step="0.01" value={editingGame.rating || ''} onChange={(e) => handleEditFieldChange('rating', parseFloat(e.target.value))} className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none text-left" dir="ltr" />
                 </div>
                 <div>
                   <label className="block text-xs text-slate-400 font-bold mb-1.5">امتیاز متاتقد (Metacritic):</label>
-                  <input type="number" value={editingGame.metacritic || ''} onChange={(e) => handleEditFieldChange('metacritic', parseInt(e.target.value))} className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none text-left" dir="ltr" />
+                  <input type="number" value={editingGame.metacritic || ''} onChange={(e) => handleEditFieldChange('metacritic', parseInt(e.target.value) || '')} className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none text-left" dir="ltr" />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-slate-400 font-bold mb-1.5">مدت زمان اتمام بازی (ساعت):</label>
+                  <input type="number" value={editingGame.playtime || ''} onChange={(e) => handleEditFieldChange('playtime', parseInt(e.target.value) || 0)} className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none text-left text-yellow-500 font-bold" dir="ltr" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs text-slate-400 font-bold mb-1.5">استودیو سازنده / توسعه‌دهنده:</label>
+                  <input type="text" value={editingGame.developers || ''} onChange={(e) => handleEditFieldChange('developers', e.target.value)} className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none" placeholder="مثال: Rockstar Games, CD Projekt" />
                 </div>
 
                 <div className="md:col-span-3">
@@ -526,7 +523,63 @@ export default function AdminPanel() {
                   <input type="text" value={editingGame.steam_link || ''} onChange={(e) => handleEditFieldChange('steam_link', e.target.value)} className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none text-left text-blue-400 font-mono" dir="ltr" />
                 </div>
 
-                <div className="md:col-span-3">
+                {/* 🎬 بخش مدیریت تریلر و ویدیوهای یوتیوب */}
+                <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-800/60 pt-4">
+                  <div>
+                    <label className="block text-xs text-purple-400 font-bold mb-1.5">🎥 لینک تریلر مستقیم (فایل MP4 یا فرمت ویدیویی):</label>
+                    <input 
+                      type="text" 
+                      value={editingGame.trailer_url || ''} 
+                      onChange={(e) => handleEditFieldChange('trailer_url', e.target.value)} 
+                      className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none text-left text-purple-300 font-mono" 
+                      placeholder="https://example.com/trailer.mp4"
+                      dir="ltr" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-red-400 font-bold mb-1.5">🔻 ویدیوهای یوتیوب (لینک‌ها را با اینتر [خط جدید] از هم جدا کنید):</label>
+                    <textarea 
+                      rows={3} 
+                      value={Array.isArray(editingGame.youtube_videos) ? editingGame.youtube_videos.join('\n') : editingGame.youtube_videos || ''} 
+                      onChange={(e) => handleEditFieldChange('youtube_videos', e.target.value.split('\n').filter((link: string) => link.trim() !== ''))} 
+                      className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none text-left text-red-300 font-mono leading-5" 
+                      placeholder="https://www.youtube.com/watch?v=..."
+                      dir="ltr" 
+                    />
+                  </div>
+                </div>
+
+                {/* ⚙️ بخش فیلدهای سیستم مورد نیاز */}
+                <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-800/60 pt-4">
+                  <div>
+                    <label className="block text-xs text-red-400 font-bold mb-1.5">⚙️ حداقل سیستم مورد نیاز (Minimum):</label>
+                    <textarea 
+                      rows={5} 
+                      value={editingGame.requirements?.minimum || ''} 
+                      onChange={(e) => setEditingGame({
+                        ...editingGame,
+                        requirements: { ...editingGame.requirements, minimum: e.target.value }
+                      })} 
+                      className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none leading-6 text-slate-300 text-left font-mono" 
+                      dir="ltr"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-green-400 font-bold mb-1.5">⚙️ سیستم پیشنهادی (Recommended):</label>
+                    <textarea 
+                      rows={5} 
+                      value={editingGame.requirements?.recommended || ''} 
+                      onChange={(e) => setEditingGame({
+                        ...editingGame,
+                        requirements: { ...editingGame.requirements, recommended: e.target.value }
+                      })} 
+                      className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none leading-6 text-slate-300 text-left font-mono" 
+                      dir="ltr"
+                    />
+                  </div>
+                </div>
+
+                <div className="md:col-span-3 border-t border-slate-800/60 pt-4">
                   <label className="block text-xs text-slate-400 font-bold mb-1.5">توضیحات فارسی سایت:</label>
                   <textarea rows={5} value={editingGame.description_fa || ''} onChange={(e) => handleEditFieldChange('description_fa', e.target.value)} className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none leading-6 text-slate-300" />
                 </div>
@@ -537,7 +590,7 @@ export default function AdminPanel() {
                 </div>
               </div>
 
-              {/* 📸 مدیریت گالری تصاویر به همراه دکمه حذف تک‌تک تصاویر */}
+              {/* 📸 مدیریت تصاویر گالری */}
               <div className="border-t border-slate-800 pt-4">
                 <label className="block text-xs text-purple-400 font-bold mb-3">📸 مدیریت گالری تصاویر آرشیو (کلیک روی ✕ جهت حذف):</label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3">
@@ -626,7 +679,6 @@ export default function AdminPanel() {
                           <button onClick={() => handleFixGame(game)} className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs transition font-bold">🔄 فیکس مجدد</button>
                           <button onClick={() => handleRemoveGame(game.id, game.name)} className="px-3 py-2 bg-red-950/40 border border-red-900 text-red-400 hover:bg-red-600 hover:text-white rounded-xl text-xs transition font-bold">❌ حذف</button>
                         </div>
-                        {/* 🛠️ دکمه ادیت قدیمی ویرایش شد و حالا فرم جامع را باز می‌کند */}
                         <button onClick={() => handleEditGame(game)} className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-[11px] transition font-bold">✏️ ویرایش کامل اطلاعات و مدیریت تصاویر</button>
                       </div>
                     ) : (

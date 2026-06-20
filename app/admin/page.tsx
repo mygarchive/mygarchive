@@ -131,7 +131,7 @@ export default function AdminPanel() {
         setLoginError('توکن وارد شده معتبر نیست یا دسترسی لازم را ندارد!');
       }
     } catch {
-      setLoginError('خطا در برانتشار با گیت‌هاب.');
+      setLoginError('خطا در ارتباط با گیت‌هاب.');
     }
     setLoading(false);
   };
@@ -194,7 +194,6 @@ export default function AdminPanel() {
     setMessage({ text: `درخواست به‌روزرسانی/فیکس "${game.name}" به صف اضافه شد.`, isError: false });
   };
 
-  // 🛠️ باز کردن فرم ویرایش جامع مدیریت محتوا
   const handleEditGame = (game: any) => {
     const fullGameData = myGames.find((g) => g.id === game.id) || game;
     setEditingGame(JSON.parse(JSON.stringify(fullGameData))); 
@@ -206,14 +205,12 @@ export default function AdminPanel() {
     setEditingGame({ ...editingGame, [field]: value });
   };
 
-  // 🛠️ مدیریت داینامیک حذف عکس از گالری
   const handleRemoveGalleryImage = (imgUrl: string) => {
     if (!editingGame) return;
     const updatedGallery = (editingGame.gallery || []).filter((img: string) => img !== imgUrl);
     setEditingGame({ ...editingGame, gallery: updatedGallery });
   };
 
-  // 🛠️ ارسال اطلاعات تغییریافته کل فیلدها به صف گیت‌هاب
   const handleSaveFullEdit = () => {
     if (!editingGame) return;
     setQueue((prev) => [...prev, { type: 'UPDATE', game: editingGame, overrideData: editingGame }]);
@@ -509,13 +506,39 @@ export default function AdminPanel() {
                   <input type="number" value={editingGame.metacritic || ''} onChange={(e) => handleEditFieldChange('metacritic', parseInt(e.target.value) || '')} className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none text-left" dir="ltr" />
                 </div>
 
+                {/* ⏱️ ویرایش دستی زمان اتمام بازی */}
                 <div>
-                  <label className="block text-xs text-slate-400 font-bold mb-1.5">مدت زمان اتمام بازی (ساعت):</label>
-                  <input type="number" value={editingGame.playtime || ''} onChange={(e) => handleEditFieldChange('playtime', parseInt(e.target.value) || 0)} className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none text-left text-yellow-500 font-bold" dir="ltr" />
+                  <label className="block text-xs text-yellow-400 font-bold mb-1.5">⏱️ زمان اتمام بازی (ساعت):</label>
+                  <input 
+                    type="number" 
+                    value={editingGame.playtime || ''} 
+                    onChange={(e) => handleEditFieldChange('playtime', parseInt(e.target.value) || 0)} 
+                    className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none text-left text-yellow-500 font-bold" 
+                    placeholder="مثلاً 45"
+                    dir="ltr" 
+                  />
                 </div>
-                <div className="md:col-span-2">
+
+                {/* 🔞 ویرایش دستی رده سنی بازی */}
+                <div>
+                  <label className="block text-xs text-red-400 font-bold mb-1.5">🔞 رده سنی (ESRB):</label>
+                  <select 
+                    value={editingGame.esrb_rating || '---'} 
+                    onChange={(e) => handleEditFieldChange('esrb_rating', e.target.value)} 
+                    className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none text-slate-300 font-bold"
+                  >
+                    <option value="---">نامشخص (---)</option>
+                    <option value="همه سنین">همه سنین (Everyone)</option>
+                    <option value="+10">+10 (Everyone 10+)</option>
+                    <option value="+13">+13 (Teen)</option>
+                    <option value="+17">+17 (Mature)</option>
+                    <option value="+18">+18 (Adults Only)</option>
+                  </select>
+                </div>
+
+                <div>
                   <label className="block text-xs text-slate-400 font-bold mb-1.5">استودیو سازنده / توسعه‌دهنده:</label>
-                  <input type="text" value={editingGame.developers || ''} onChange={(e) => handleEditFieldChange('developers', e.target.value)} className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none" placeholder="مثال: Rockstar Games, CD Projekt" />
+                  <input type="text" value={editingGame.developers || ''} onChange={(e) => handleEditFieldChange('developers', e.target.value)} className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs outline-none" placeholder="مثال: Rockstar Games" />
                 </div>
 
                 <div className="md:col-span-3">
@@ -682,7 +705,7 @@ export default function AdminPanel() {
                         <button onClick={() => handleEditGame(game)} className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-[11px] transition font-bold">✏️ ویرایش کامل اطلاعات و مدیریت تصاویر</button>
                       </div>
                     ) : (
-                      <button onClick={() => handleAddGame(game)} className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs transition font-bold">＋ افزودن به آرشیو</button>
+                      <button onClick={() => addGame(game)} className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs transition font-bold">＋ افزودن به آرشیو</button>
                     )}
                   </div>
                 </div>

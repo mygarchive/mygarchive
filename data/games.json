@@ -90,8 +90,8 @@
     "id": 846303,
     "name": "Cyberpunk 2077: Phantom Liberty",
     "background_image": "https://media.rawg.io/media/games/062/06285b425e61623530c5430f20e5d222.jpg",
-    "rating": 4.71,
-    "metacritic": 80,
+    "rating": 4.72,
+    "metacritic": 79,
     "released": "2023-09-26",
     "genres": [
       {
@@ -105,8 +105,8 @@
         "slug": "action"
       }
     ],
-    "esrb_rating": "+17",
-    "playtime": 0,
+    "esrb_rating": "+18",
+    "playtime": 36,
     "developers": "CD PROJEKT RED",
     "steam_link": "https://store.steampowered.com/app/2138330/",
     "trailer_url": "",
